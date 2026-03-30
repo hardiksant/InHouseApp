@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Plus, Trash2, AlertCircle } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
 import { useAuth } from '../../../contexts/AuthContext';
+import { useToast } from '../../../contexts/ToastContext';
 
 interface ProductRow {
   id: string;
@@ -18,6 +19,7 @@ interface CreateOrderFormProps {
 
 export function CreateOrderForm({ onClose, onSuccess }: CreateOrderFormProps) {
   const { user, userProfile } = useAuth();
+  const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
   const [repeatBuyerDetected, setRepeatBuyerDetected] = useState(false);
   const [previousOrders, setPreviousOrders] = useState<any[]>([]);
@@ -195,7 +197,7 @@ export function CreateOrderForm({ onClose, onSuccess }: CreateOrderFormProps) {
       setFormData(prev => ({ ...prev, payment_screenshot_url: publicUrl }));
     } catch (error) {
       console.error('Error uploading screenshot:', error);
-      alert('Failed to upload screenshot');
+      showToast('Failed to upload screenshot', 'error');
     } finally {
       setUploadingScreenshot(false);
     }
@@ -267,12 +269,12 @@ export function CreateOrderForm({ onClose, onSuccess }: CreateOrderFormProps) {
 
       if (historyError) throw historyError;
 
-      alert('Order created successfully!');
+      showToast('Order created successfully!', 'success');
       onSuccess();
       onClose();
     } catch (error: any) {
       console.error('Error creating order:', error);
-      alert('Failed to create order: ' + error.message);
+      showToast('Failed to create order: ' + error.message, 'error');
     } finally {
       setLoading(false);
     }

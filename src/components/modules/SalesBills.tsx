@@ -5,6 +5,7 @@ import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import ReportIssueButton from '../ReportIssueButton';
 import { getCompanySettings, type CompanySettings } from '../../lib/companySettings';
+import { useToast } from '../../contexts/ToastContext';
 
 interface SalesBill {
   id: string;
@@ -39,6 +40,7 @@ const MONTHS = [
 
 export function SalesBills() {
   const { user, userProfile } = useAuth();
+  const { showToast } = useToast();
   const [showForm, setShowForm] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [bills, setBills] = useState<SalesBill[]>([]);
@@ -253,7 +255,7 @@ export function SalesBills() {
 
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
-      alert('Please allow popups to download the invoice');
+      showToast('Please allow popups to download the invoice', 'warning');
       return;
     }
 

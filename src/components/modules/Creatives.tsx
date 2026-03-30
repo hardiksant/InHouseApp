@@ -8,6 +8,7 @@ import { CreativesHeader } from './CreativesHeader';
 import { supabase, Creative } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import ReportIssueButton from '../ReportIssueButton';
+import { useToast } from '../../contexts/ToastContext';
 
 const FOLDER_STRUCTURE = {
   'Instagram Creatives': [],
@@ -33,6 +34,7 @@ const ALLOWED_FILE_TYPES = {
 
 export function Creatives() {
   const { user, userProfile } = useAuth();
+  const { showToast } = useToast();
   const isAdminOrModerator = userProfile?.role === 'admin' || userProfile?.role === 'moderator';
   const isAdmin = userProfile?.role === 'admin';
 
@@ -92,7 +94,7 @@ export function Creatives() {
     });
 
     if (validFiles.length !== files.length) {
-      alert('Some files were rejected. Please ensure files are JPG, PNG, MP4, MOV, or PDF and under 100MB.');
+      showToast('Some files were rejected. Please ensure files are JPG, PNG, MP4, MOV, or PDF and under 100MB.', 'warning');
     }
 
     setUploadForm(prev => ({ ...prev, files: validFiles }));
@@ -101,7 +103,7 @@ export function Creatives() {
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
     if (uploadForm.files.length === 0) {
-      alert('Please select at least one file');
+      showToast('Please select at least one file', 'warning');
       return;
     }
 
@@ -138,7 +140,7 @@ export function Creatives() {
         if (dbError) throw dbError;
       }
 
-      alert('Creatives uploaded successfully!');
+      showToast('Creatives uploaded successfully!', 'success');
       setShowUploadModal(false);
       setUploadForm({
         title: '',
@@ -152,7 +154,7 @@ export function Creatives() {
       fetchCreatives();
     } catch (error) {
       console.error('Error uploading:', error);
-      alert('Failed to upload creatives. Please try again.');
+      showToast('Failed to upload creatives. Please try again.', 'error');
     } finally {
       setUploading(false);
     }
@@ -175,11 +177,11 @@ export function Creatives() {
 
       if (dbError) throw dbError;
 
-      alert('Creative deleted successfully');
+      showToast('Creative deleted successfully', 'success');
       fetchCreatives();
     } catch (error) {
       console.error('Error deleting:', error);
-      alert('Failed to delete creative');
+      showToast('Failed to delete creative', 'error');
     }
   };
 
@@ -196,7 +198,7 @@ export function Creatives() {
 
   const handleCopyCaption = (caption: string) => {
     navigator.clipboard.writeText(caption);
-    alert('Caption copied to clipboard!');
+    showToast('Caption copied to clipboard!', 'success');
   };
 
   const toggleFolder = (folder: string) => {

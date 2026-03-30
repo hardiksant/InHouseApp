@@ -2,6 +2,7 @@ import React from 'react';
 import { X, Download, FileText, Calendar, DollarSign, CreditCard, Tag, FileImage } from 'lucide-react';
 import { Expense } from '../lib/supabase';
 import { formatCurrency } from '../lib/currency';
+import { useToast } from '../contexts/ToastContext';
 
 interface ExpenseDetailsModalProps {
   expense: Expense;
@@ -9,6 +10,7 @@ interface ExpenseDetailsModalProps {
 }
 
 export function ExpenseDetailsModal({ expense, onClose }: ExpenseDetailsModalProps) {
+  const { showToast } = useToast();
   const hasAttachment = expense.bill_image || (expense as any).invoice_file;
   const attachmentUrl = expense.bill_image || (expense as any).invoice_file;
 
@@ -32,7 +34,7 @@ export function ExpenseDetailsModal({ expense, onClose }: ExpenseDetailsModalPro
       window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Error downloading file:', error);
-      alert('Failed to download file. Please try again.');
+      showToast('Failed to download file. Please try again.', 'error');
     }
   };
 

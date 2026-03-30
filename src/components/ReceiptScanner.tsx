@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Upload, Loader2, Camera, X } from 'lucide-react';
 import { extractReceiptData, ExtractedReceiptData } from '../lib/ocr';
+import { useToast } from '../contexts/ToastContext';
 
 interface ReceiptScannerProps {
   onDataExtracted: (data: ExtractedReceiptData, imageFile: File) => void;
@@ -8,6 +9,7 @@ interface ReceiptScannerProps {
 }
 
 export function ReceiptScanner({ onDataExtracted, onCancel }: ReceiptScannerProps) {
+  const { showToast } = useToast();
   const [scanning, setScanning] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -35,7 +37,7 @@ export function ReceiptScanner({ onDataExtracted, onCancel }: ReceiptScannerProp
     } catch (error) {
       console.error('OCR extraction error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      alert(`Failed to scan receipt: ${errorMessage}\n\nPlease try again or enter details manually.`);
+      showToast(`Failed to scan receipt: ${errorMessage}. Please try again or enter details manually.`, 'error');
     } finally {
       setScanning(false);
     }

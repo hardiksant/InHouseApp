@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Calendar, Phone, CheckCircle, X, AlertCircle, Clock } from 'lucide-react';
 import { supabase, CRMFollowUp, CRMLead, LEAD_STATUSES } from '../../../lib/supabase';
 import { useAuth } from '../../../contexts/AuthContext';
+import { useToast } from '../../../contexts/ToastContext';
 
 interface FollowUpsDashboardProps {
   onRefresh: () => void;
@@ -13,6 +14,7 @@ interface FollowUpWithLead extends CRMFollowUp {
 
 export function FollowUpsDashboard({ onRefresh }: FollowUpsDashboardProps) {
   const { user, userProfile } = useAuth();
+  const { showToast } = useToast();
   const isAdmin = userProfile?.role === 'admin';
 
   const [todayFollowUps, setTodayFollowUps] = useState<FollowUpWithLead[]>([]);
@@ -112,14 +114,14 @@ export function FollowUpsDashboard({ onRefresh }: FollowUpsDashboardProps) {
           .eq('id', selectedFollowUp.lead_id);
       }
 
-      alert('Follow-up updated successfully!');
+      showToast('Follow-up updated successfully!', 'success');
       setShowUpdateModal(false);
       setSelectedFollowUp(null);
       fetchFollowUps();
       onRefresh();
     } catch (error) {
       console.error('Error updating follow-up:', error);
-      alert('Failed to update follow-up');
+      showToast('Failed to update follow-up', 'error');
     }
   };
 

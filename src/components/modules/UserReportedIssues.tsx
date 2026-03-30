@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { MessageSquareWarning, Plus, Filter, Search, AlertCircle, CheckCircle2, Clock, X, CreditCard as Edit2, Trash2 } from 'lucide-react';
 import { supabase, UserReportedIssue } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
+import { useToast } from '../../contexts/ToastContext';
 
 export default function UserReportedIssues() {
   const { user, isAdmin } = useAuth();
+  const { showToast } = useToast();
   const [issues, setIssues] = useState<UserReportedIssue[]>([]);
   const [filteredIssues, setFilteredIssues] = useState<UserReportedIssue[]>([]);
   const [loading, setLoading] = useState(true);
@@ -91,7 +93,7 @@ export default function UserReportedIssues() {
 
       if (error) throw error;
 
-      alert('Issue added successfully!');
+      showToast('Issue added successfully!', 'success');
       setFormData({
         title: '',
         issue_type: 'bug',
@@ -103,7 +105,7 @@ export default function UserReportedIssues() {
       fetchIssues();
     } catch (error) {
       console.error('Error adding issue:', error);
-      alert('Failed to add issue. Please try again.');
+      showToast('Failed to add issue. Please try again.', 'error');
     }
   };
 
@@ -127,7 +129,7 @@ export default function UserReportedIssues() {
       fetchIssues();
     } catch (error) {
       console.error('Error updating status:', error);
-      alert('Failed to update status.');
+      showToast('Failed to update status.', 'error');
     }
   };
 
@@ -143,10 +145,10 @@ export default function UserReportedIssues() {
 
       if (error) throw error;
       fetchIssues();
-      alert('Notes updated successfully!');
+      showToast('Notes updated successfully!', 'success');
     } catch (error) {
       console.error('Error updating notes:', error);
-      alert('Failed to update notes.');
+      showToast('Failed to update notes.', 'error');
     }
   };
 
@@ -161,10 +163,10 @@ export default function UserReportedIssues() {
 
       if (error) throw error;
       fetchIssues();
-      alert('Issue deleted successfully!');
+      showToast('Issue deleted successfully!', 'success');
     } catch (error) {
       console.error('Error deleting issue:', error);
-      alert('Failed to delete issue.');
+      showToast('Failed to delete issue.', 'error');
     }
   };
 

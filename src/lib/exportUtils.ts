@@ -190,6 +190,6 @@ export function exportToPDF(
     doc.save(filename);
   } catch (error) {
     console.error('Error generating PDF:', error);
-    alert('Failed to generate PDF. Please check the console for details.');
+    throw new Error('Failed to generate PDF. Please check the console for details.');
   }
 }

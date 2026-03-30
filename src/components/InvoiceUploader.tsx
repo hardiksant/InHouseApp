@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Upload, Loader2, FileText, X } from 'lucide-react';
 import { parseInvoice, InvoiceData } from '../lib/invoiceParser';
 import { processUploadedFile } from '../lib/fileConverter';
+import { useToast } from '../contexts/ToastContext';
 
 interface InvoiceUploaderProps {
   onDataExtracted: (data: InvoiceData, file: File) => void;
@@ -9,6 +10,7 @@ interface InvoiceUploaderProps {
 }
 
 export function InvoiceUploader({ onDataExtracted, onCancel }: InvoiceUploaderProps) {
+  const { showToast } = useToast();
   const [processing, setProcessing] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -58,7 +60,7 @@ export function InvoiceUploader({ onDataExtracted, onCancel }: InvoiceUploaderPr
       const isHeic = fileExtension === 'heic' || fileExtension === 'heif';
 
       if (!validTypes.includes(file.type) && !isHeic) {
-        alert('Please upload a PDF, JPG, PNG, or HEIC file');
+        showToast('Please upload a PDF, JPG, PNG, or HEIC file', 'warning');
         return;
       }
 
@@ -77,7 +79,7 @@ export function InvoiceUploader({ onDataExtracted, onCancel }: InvoiceUploaderPr
     } catch (error) {
       console.error('File processing error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      alert(`Failed to process file: ${errorMessage}`);
+      showToast(`Failed to process file: ${errorMessage}`, 'error');
     }
   };
 
@@ -91,7 +93,7 @@ export function InvoiceUploader({ onDataExtracted, onCancel }: InvoiceUploaderPr
     } catch (error) {
       console.error('Invoice parsing error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      alert(`Failed to process invoice: ${errorMessage}\n\nPlease try again or enter details manually.`);
+      showToast(`Failed to process invoice: ${errorMessage}. Please try again or enter details manually.`, 'error');
     } finally {
       setProcessing(false);
     }

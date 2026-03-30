@@ -5,9 +5,11 @@ import {
 } from 'lucide-react';
 import { supabase, UserProfile, UserInvitation } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
+import { useToast } from '../../contexts/ToastContext';
 
 export function UserManagement() {
   const { user, userProfile } = useAuth();
+  const { showToast } = useToast();
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [invitations, setInvitations] = useState<UserInvitation[]>([]);
   const [loading, setLoading] = useState(true);
@@ -100,7 +102,7 @@ export function UserManagement() {
           p_entity_id: authData.user.id
         });
 
-        alert('User created successfully!');
+        showToast('User created successfully!', 'success');
         setShowAddModal(false);
         setFormData({
           full_name: '',
@@ -114,7 +116,7 @@ export function UserManagement() {
       }
     } catch (error: any) {
       console.error('Error creating user:', error);
-      alert(`Failed to create user: ${error.message}`);
+      showToast(`Failed to create user: ${error.message}`, 'error');
     }
   };
 
@@ -138,11 +140,11 @@ export function UserManagement() {
         p_entity_id: userId
       });
 
-      alert('User deactivated successfully!');
+      showToast('User deactivated successfully!', 'success');
       fetchUsers();
     } catch (error) {
       console.error('Error deactivating user:', error);
-      alert('Failed to deactivate user');
+      showToast('Failed to deactivate user', 'error');
     }
   };
 
@@ -164,11 +166,11 @@ export function UserManagement() {
         p_entity_id: userId
       });
 
-      alert('User activated successfully!');
+      showToast('User activated successfully!', 'success');
       fetchUsers();
     } catch (error) {
       console.error('Error activating user:', error);
-      alert('Failed to activate user');
+      showToast('Failed to activate user', 'error');
     }
   };
 

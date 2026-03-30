@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Users, Phone, MapPin, DollarSign, Calendar, ShoppingBag, X } from 'lucide-react';
 import { supabase, CRMCustomer, CRMLead } from '../../../lib/supabase';
+import { useToast } from '../../../contexts/ToastContext';
 
 export function Customers() {
+  const { showToast } = useToast();
   const [customers, setCustomers] = useState<CRMCustomer[]>([]);
   const [unconvertedLeads, setUnconvertedLeads] = useState<CRMLead[]>([]);
   const [loading, setLoading] = useState(true);
@@ -85,13 +87,13 @@ export function Customers() {
 
       if (error) throw error;
 
-      alert('Lead converted to customer successfully!');
+      showToast('Lead converted to customer successfully!', 'success');
       setShowConvertModal(false);
       setSelectedLead('');
       fetchCustomers();
     } catch (error) {
       console.error('Error converting lead:', error);
-      alert('Failed to convert lead');
+      showToast('Failed to convert lead', 'error');
     }
   };
 

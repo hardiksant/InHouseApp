@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Phone, MapPin, Package, DollarSign, Calendar, User, MessageSquare, Clock, CheckCircle, CreditCard as Edit2, Save, X, ExternalLink } from 'lucide-react';
 import { supabase, CRMLead, CRMLeadTimeline, CRMFollowUp, LEAD_STATUSES } from '../../../lib/supabase';
 import { useAuth } from '../../../contexts/AuthContext';
+import { useToast } from '../../../contexts/ToastContext';
 import { ActivityTimeline } from '../../ActivityTimeline';
 
 interface LeadDetailsProps {
@@ -12,6 +13,7 @@ interface LeadDetailsProps {
 
 export function LeadDetails({ leadId, onBack, onLeadUpdated }: LeadDetailsProps) {
   const { user, isAdmin } = useAuth();
+  const { showToast } = useToast();
   const [lead, setLead] = useState<CRMLead | null>(null);
   const [timeline, setTimeline] = useState<CRMLeadTimeline[]>([]);
   const [followUps, setFollowUps] = useState<CRMFollowUp[]>([]);
@@ -112,14 +114,14 @@ export function LeadDetails({ leadId, onBack, onLeadUpdated }: LeadDetailsProps)
 
       if (error) throw error;
 
-      alert('Lead updated successfully!');
+      showToast('Lead updated successfully!', 'success');
       setEditing(false);
       fetchLeadDetails();
       fetchTimeline();
       onLeadUpdated?.();
     } catch (error) {
       console.error('Error updating lead:', error);
-      alert('Failed to update lead');
+      showToast('Failed to update lead', 'error');
     }
   };
 
@@ -171,14 +173,14 @@ export function LeadDetails({ leadId, onBack, onLeadUpdated }: LeadDetailsProps)
         created_by: user!.id
       });
 
-      alert('Lead converted to customer successfully!');
+      showToast('Lead converted to customer successfully!', 'success');
       setShowConvertModal(false);
       fetchLeadDetails();
       fetchTimeline();
       onLeadUpdated?.();
     } catch (error) {
       console.error('Error converting lead:', error);
-      alert('Failed to convert lead to customer');
+      showToast('Failed to convert lead to customer', 'error');
     }
   };
 

@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Filter, Search, Phone, MapPin, DollarSign, Trash2 } from 'lucide-react';
 import { supabase, CRMLead, LEAD_SOURCES, LEAD_STATUSES } from '../../../lib/supabase';
 import { useAuth } from '../../../contexts/AuthContext';
+import { useToast } from '../../../contexts/ToastContext';
 
 export function AllLeads() {
   const { user, userProfile } = useAuth();
+  const { showToast } = useToast();
   const isAdmin = userProfile?.role === 'admin';
 
   const [leads, setLeads] = useState<CRMLead[]>([]);
@@ -57,11 +59,11 @@ export function AllLeads() {
     try {
       const { error } = await supabase.from('crm_leads').delete().eq('id', leadId);
       if (error) throw error;
-      alert('Lead deleted successfully');
+      showToast('Lead deleted successfully', 'success');
       fetchLeads();
     } catch (error) {
       console.error('Error deleting lead:', error);
-      alert('Failed to delete lead');
+      showToast('Failed to delete lead', 'error');
     }
   };
 

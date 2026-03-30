@@ -1,5 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { ToastProvider } from './contexts/ToastContext';
+import { ToastContainer } from './components/ToastContainer';
 import { Login } from './components/Login';
 import { ResetPassword } from './components/ResetPassword';
 import { PlatformDashboard } from './components/PlatformDashboard';
@@ -223,8 +225,11 @@ function App() {
     <ErrorBoundary>
       <BrowserRouter>
         <AuthProvider>
-          <AppContent />
-          <InstallPWA />
+          <ToastProvider>
+            <AppContent />
+            <InstallPWA />
+            <ToastContainer />
+          </ToastProvider>
         </AuthProvider>
       </BrowserRouter>
     </ErrorBoundary>

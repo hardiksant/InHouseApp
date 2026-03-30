@@ -11,8 +11,7 @@ interface OrderForSlip {
 export function printOrderSlips(orders: OrderForSlip[]) {
   const printWindow = window.open('', '_blank');
   if (!printWindow) {
-    alert('Please allow popups to print slips');
-    return;
+    throw new Error('Please allow popups to print slips');
   }
 
   const slipsHTML = orders

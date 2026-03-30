@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { CheckCircle, XCircle, Upload, Printer, Package, Truck, Image as ImageIcon } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
 import { useAuth } from '../../../contexts/AuthContext';
+import { useToast } from '../../../contexts/ToastContext';
 
 interface Order {
   id: string;
@@ -36,6 +37,7 @@ interface CourierPartner {
 
 export function ModeratorDispatchWorkflow() {
   const { user, userProfile } = useAuth();
+  const { showToast } = useToast();
   const [activeTab, setActiveTab] = useState<'new' | 'packing' | 'dispatched'>('new');
   const [newOrders, setNewOrders] = useState<Order[]>([]);
   const [packingOrders, setPackingOrders] = useState<Order[]>([]);
@@ -130,10 +132,10 @@ export function ModeratorDispatchWorkflow() {
         notes: 'Order approved by moderator'
       });
 
-      alert('Order approved successfully!');
+      showToast('Order approved successfully!', 'success');
       fetchOrders();
     } catch (error: any) {
-      alert('Failed to approve order: ' + error.message);
+      showToast('Failed to approve order: ' + error.message, 'error');
     }
   };
 
@@ -157,10 +159,10 @@ export function ModeratorDispatchWorkflow() {
         notes: `Rejected: ${reason}`
       });
 
-      alert('Order rejected');
+      showToast('Order rejected', 'warning');
       fetchOrders();
     } catch (error: any) {
-      alert('Failed to reject order: ' + error.message);
+      showToast('Failed to reject order: ' + error.message, 'error');
     }
   };
 
@@ -193,7 +195,7 @@ export function ModeratorDispatchWorkflow() {
         }
       }));
     } catch (error: any) {
-      alert('Failed to upload photo: ' + error.message);
+      showToast('Failed to upload photo: ' + error.message, 'error');
       setPackingDetails(prev => ({
         ...prev,
         [orderId]: { ...prev[orderId], uploading: false }
@@ -225,16 +227,16 @@ export function ModeratorDispatchWorkflow() {
         notes: details.note || 'Ready for dispatch'
       });
 
-      alert('Packing details saved!');
+      showToast('Packing details saved!', 'success');
       fetchOrders();
     } catch (error: any) {
-      alert('Failed to save packing details: ' + error.message);
+      showToast('Failed to save packing details: ' + error.message, 'error');
     }
   };
 
   const handlePrintSlips = () => {
     if (selectedOrders.size === 0) {
-      alert('Please select at least one order');
+      showToast('Please select at least one order', 'warning');
       return;
     }
 
@@ -333,7 +335,7 @@ export function ModeratorDispatchWorkflow() {
   const handleDispatchOrder = async (orderId: string) => {
     const details = dispatchDetails[orderId];
     if (!details || !details.courier_partner || !details.tracking_id || !details.dispatch_date) {
-      alert('Please fill all dispatch details');
+      showToast('Please fill all dispatch details', 'warning');
       return;
     }
 
@@ -358,7 +360,7 @@ export function ModeratorDispatchWorkflow() {
         notes: `Dispatched via ${details.courier_partner}, Tracking: ${details.tracking_id}`
       });
 
-      alert('Order dispatched successfully!');
+      showToast('Order dispatched successfully!', 'success');
       fetchOrders();
       setDispatchDetails(prev => {
         const updated = { ...prev };
@@ -366,7 +368,7 @@ export function ModeratorDispatchWorkflow() {
         return updated;
       });
     } catch (error: any) {
-      alert('Failed to dispatch order: ' + error.message);
+      showToast('Failed to dispatch order: ' + error.message, 'error');
     }
   };
 

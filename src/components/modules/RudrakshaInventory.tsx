@@ -3,6 +3,7 @@ import { Package, Plus, X, Download, Share2, Copy, Trash2, Image as ImageIcon, F
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import { getCompanySettings } from '../../lib/companySettings';
+import { useToast } from '../../contexts/ToastContext';
 
 interface RudrakshaCategory {
   id: string;
@@ -37,6 +38,7 @@ interface Props {
 
 export function RudrakshaInventory({ onBack }: Props) {
   const { user } = useAuth();
+  const { showToast } = useToast();
   const [categories, setCategories] = useState<RudrakshaCategory[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<RudrakshaCategory | null>(null);
   const [beads, setBeads] = useState<RudrakshaBead[]>([]);
@@ -347,7 +349,7 @@ export function RudrakshaInventory({ onBack }: Props) {
     });
 
     navigator.clipboard.writeText(text);
-    alert('Text copied to clipboard!');
+    showToast('Text copied to clipboard!', 'success');
   };
 
   return (

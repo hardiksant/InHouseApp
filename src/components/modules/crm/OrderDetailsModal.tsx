@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { supabase, OrderBook, OrderStatusHistory } from '../../../lib/supabase';
 import { useAuth } from '../../../contexts/AuthContext';
+import { useToast } from '../../../contexts/ToastContext';
 import { logActivity, ActivityTypes } from '../../../lib/activityLogger';
 import { ActivityTimeline } from '../../ActivityTimeline';
 import { notifyOrderApproval, notifyOrderDispatched, notifyTrackingAdded } from '../../../lib/notificationHelper';
@@ -17,6 +18,7 @@ interface OrderDetailsModalProps {
 
 export function OrderDetailsModal({ order, onClose, onUpdate }: OrderDetailsModalProps) {
   const { user, userProfile, isAdmin, isModerator } = useAuth();
+  const { showToast } = useToast();
   const [statusHistory, setStatusHistory] = useState<OrderStatusHistory[]>([]);
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -67,12 +69,12 @@ export function OrderDetailsModal({ order, onClose, onUpdate }: OrderDetailsModa
         entityId: order.id
       });
 
-      alert('Order status updated successfully!');
+      showToast('Order status updated successfully!', 'success');
       onUpdate();
       fetchStatusHistory();
     } catch (error: any) {
       console.error('Error updating status:', error);
-      alert(`Failed to update status: ${error.message}`);
+      showToast(`Failed to update status: ${error.message}`, 'error');
     } finally {
       setLoading(false);
     }
@@ -109,12 +111,12 @@ export function OrderDetailsModal({ order, onClose, onUpdate }: OrderDetailsModa
         await notifyOrderApproval(order.id, order.order_number, order.created_by);
       }
 
-      alert('Order approved successfully!');
+      showToast('Order approved successfully!', 'success');
       onUpdate();
       fetchStatusHistory();
     } catch (error: any) {
       console.error('Error approving order:', error);
-      alert(`Failed to approve order: ${error.message}`);
+      showToast(`Failed to approve order: ${error.message}`, 'error');
     } finally {
       setLoading(false);
     }
@@ -147,11 +149,11 @@ export function OrderDetailsModal({ order, onClose, onUpdate }: OrderDetailsModa
 
       if (updateError) throw updateError;
 
-      alert('Product photo uploaded successfully!');
+      showToast('Product photo uploaded successfully!', 'success');
       onUpdate();
     } catch (error: any) {
       console.error('Error uploading photo:', error);
-      alert(`Failed to upload photo: ${error.message}`);
+      showToast(`Failed to upload photo: ${error.message}`, 'error');
     } finally {
       setUploading(false);
     }
@@ -192,11 +194,11 @@ export function OrderDetailsModal({ order, onClose, onUpdate }: OrderDetailsModa
         }
       }
 
-      alert('Tracking details updated successfully!');
+      showToast('Tracking details updated successfully!', 'success');
       onUpdate();
     } catch (error: any) {
       console.error('Error updating tracking:', error);
-      alert(`Failed to update tracking: ${error.message}`);
+      showToast(`Failed to update tracking: ${error.message}`, 'error');
     } finally {
       setLoading(false);
     }

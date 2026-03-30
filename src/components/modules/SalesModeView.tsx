@@ -3,6 +3,7 @@ import { Search, X, Share2, Copy, Image as ImageIcon, Video, ArrowLeft, External
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import { shareOnWhatsApp } from '../../lib/whatsappShare';
+import { useToast } from '../../contexts/ToastContext';
 
 interface ProductCategory {
   id: string;
@@ -58,6 +59,7 @@ interface Props {
 
 export function SalesModeView({ onBack }: Props) {
   const { user } = useAuth();
+  const { showToast } = useToast();
   const [categories, setCategories] = useState<ProductCategory[]>([]);
   const [products, setProducts] = useState<ProductCard[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<ProductCard[]>([]);
@@ -242,7 +244,7 @@ export function SalesModeView({ onBack }: Props) {
     text += `Price: ₹${product.price}`;
 
     navigator.clipboard.writeText(text);
-    alert('Product info copied to clipboard!');
+    showToast('Product info copied to clipboard!', 'success');
   };
 
   return (

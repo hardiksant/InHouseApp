@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { UserPlus, X, Phone, MapPin, DollarSign, Tag, Calendar, ExternalLink, ToggleLeft, ToggleRight } from 'lucide-react';
 import { supabase, CRMLead, LEAD_SOURCES } from '../../../lib/supabase';
 import { useAuth } from '../../../contexts/AuthContext';
+import { useToast } from '../../../contexts/ToastContext';
 import { LeadDetails } from './LeadDetails';
 import { generateFollowUps, addTimelineEvent } from '../../../lib/crmHelpers';
 
@@ -11,6 +12,7 @@ interface DailyHotLeadsProps {
 
 export function DailyHotLeads({ onRefresh }: DailyHotLeadsProps) {
   const { user, userProfile } = useAuth();
+  const { showToast } = useToast();
   const isAdmin = userProfile?.role === 'admin';
 
   const [leads, setLeads] = useState<CRMLead[]>([]);
@@ -114,7 +116,7 @@ export function DailyHotLeads({ onRefresh }: DailyHotLeadsProps) {
       await generateFollowUps(leadData.id, leadData.created_at);
       await addTimelineEvent(leadData.id, 'created', 'Lead created', user!.id);
 
-      alert('Lead added successfully with 5 follow-ups scheduled!');
+      showToast('Lead added successfully with 5 follow-ups scheduled!', 'success');
       setShowAddModal(false);
       setFormData({
         customer_name: '',
@@ -131,7 +133,7 @@ export function DailyHotLeads({ onRefresh }: DailyHotLeadsProps) {
       onRefresh();
     } catch (error) {
       console.error('Error adding lead:', error);
-      alert('Failed to add lead. Please try again.');
+      showToast('Failed to add lead. Please try again.', 'error');
     }
   };
 

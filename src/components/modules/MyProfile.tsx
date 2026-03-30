@@ -5,9 +5,11 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
+import { useToast } from '../../contexts/ToastContext';
 
 export function MyProfile() {
   const { user, userProfile, updateProfile } = useAuth();
+  const { showToast } = useToast();
   const [editing, setEditing] = useState(false);
   const [changingPassword, setChangingPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -30,11 +32,11 @@ export function MyProfile() {
   const handleSaveProfile = async () => {
     try {
       await updateProfile(formData);
-      alert('Profile updated successfully!');
+      showToast('Profile updated successfully!', 'success');
       setEditing(false);
     } catch (error: any) {
       console.error('Error updating profile:', error);
-      alert(`Failed to update profile: ${error.message}`);
+      showToast(`Failed to update profile: ${error.message}`, 'error');
     }
   };
 
@@ -42,12 +44,12 @@ export function MyProfile() {
     e.preventDefault();
 
     if (passwordData.newPassword !== passwordData.confirmPassword) {
-      alert('New passwords do not match');
+      showToast('New passwords do not match', 'warning');
       return;
     }
 
     if (passwordData.newPassword.length < 6) {
-      alert('Password must be at least 6 characters');
+      showToast('Password must be at least 6 characters', 'warning');
       return;
     }
 
@@ -58,7 +60,7 @@ export function MyProfile() {
 
       if (error) throw error;
 
-      alert('Password changed successfully!');
+      showToast('Password changed successfully!', 'success');
       setChangingPassword(false);
       setPasswordData({
         currentPassword: '',
@@ -67,7 +69,7 @@ export function MyProfile() {
       });
     } catch (error: any) {
       console.error('Error changing password:', error);
-      alert(`Failed to change password: ${error.message}`);
+      showToast(`Failed to change password: ${error.message}`, 'error');
     }
   };
 
@@ -93,10 +95,10 @@ export function MyProfile() {
 
       await updateProfile({ profile_photo_url: publicUrl });
 
-      alert('Profile photo updated successfully!');
+      showToast('Profile photo updated successfully!', 'success');
     } catch (error: any) {
       console.error('Error uploading photo:', error);
-      alert(`Failed to upload photo: ${error.message}`);
+      showToast(`Failed to upload photo: ${error.message}`, 'error');
     } finally {
       setUploading(false);
     }

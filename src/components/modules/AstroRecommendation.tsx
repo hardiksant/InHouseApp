@@ -4,6 +4,7 @@ import { AstroRecommendationHeader } from './AstroRecommendationHeader';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import ReportIssueButton from '../ReportIssueButton';
+import { useToast } from '../../contexts/ToastContext';
 import {
   RASHI_MAPPINGS,
   PROBLEM_OPTIONS,
@@ -54,6 +55,7 @@ interface SavedRecommendation {
 
 export function AstroRecommendation() {
   const { user, isAdmin } = useAuth();
+  const { showToast } = useToast();
   const [showForm, setShowForm] = useState(true);
   const [showHistory, setShowHistory] = useState(false);
   const [formData, setFormData] = useState<FormData>({
@@ -197,7 +199,7 @@ export function AstroRecommendation() {
       URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Error generating PDF:', error);
-      alert('Failed to generate PDF. Please try again.');
+      showToast('Failed to generate PDF. Please try again.', 'error');
     }
 
     setGeneratingPDF(false);
