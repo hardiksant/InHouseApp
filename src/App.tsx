@@ -170,9 +170,9 @@ function AppContent() {
       <Route
         path="/platform-reports"
         element={
-          <ProtectedRoute>
+          <AdminRoute>
             <PlatformReports />
-          </ProtectedRoute>
+          </AdminRoute>
         }
       />
       <Route

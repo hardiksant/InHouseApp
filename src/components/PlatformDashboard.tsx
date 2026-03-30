@@ -138,7 +138,7 @@ export function PlatformDashboard() {
       color: 'text-amber-600',
       gradient: 'from-amber-500 to-orange-600'
     },
-    {
+    ...(isAdmin ? [{
       id: 'reports',
       title: 'Reports',
       description: 'Analytics, insights, and business intelligence',
@@ -146,7 +146,7 @@ export function PlatformDashboard() {
       route: '/platform-reports',
       color: 'text-cyan-600',
       gradient: 'from-cyan-500 to-blue-600'
-    },
+    }] : []),
     {
       id: 'settings',
       title: 'Settings',

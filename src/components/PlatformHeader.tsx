@@ -6,7 +6,7 @@ import { InstallButton } from './InstallButton';
 import { NotificationBell } from './NotificationBell';
 
 export function PlatformHeader() {
-  const { signOut, userProfile } = useAuth();
+  const { signOut, userProfile, isAdmin, isModerator } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
 
@@ -128,18 +128,20 @@ export function PlatformHeader() {
               >
                 Astro
               </NavLink>
-              <NavLink
-                to="/platform-reports"
-                className={({ isActive }) =>
-                  `px-4 py-2 rounded-lg font-medium transition ${
-                    isActive
-                      ? 'bg-blue-600 text-white'
-                      : 'text-slate-300 hover:bg-slate-700 hover:text-white'
-                  }`
-                }
-              >
-                Reports
-              </NavLink>
+              {isAdmin && (
+                <NavLink
+                  to="/platform-reports"
+                  className={({ isActive }) =>
+                    `px-4 py-2 rounded-lg font-medium transition ${
+                      isActive
+                        ? 'bg-blue-600 text-white'
+                        : 'text-slate-300 hover:bg-slate-700 hover:text-white'
+                    }`
+                  }
+                >
+                  Reports
+                </NavLink>
+              )}
               <NavLink
                 to="/settings"
                 className={({ isActive }) =>
@@ -277,19 +279,21 @@ export function PlatformHeader() {
               >
                 Astro
               </NavLink>
-              <NavLink
-                to="/platform-reports"
-                onClick={closeMobileMenu}
-                className={({ isActive }) =>
-                  `px-4 py-3 rounded-lg font-medium transition ${
-                    isActive
-                      ? 'bg-blue-600 text-white'
-                      : 'text-slate-300 hover:bg-slate-700 hover:text-white'
-                  }`
-                }
-              >
-                Reports
-              </NavLink>
+              {isAdmin && (
+                <NavLink
+                  to="/platform-reports"
+                  onClick={closeMobileMenu}
+                  className={({ isActive }) =>
+                    `px-4 py-3 rounded-lg font-medium transition ${
+                      isActive
+                        ? 'bg-blue-600 text-white'
+                        : 'text-slate-300 hover:bg-slate-700 hover:text-white'
+                    }`
+                  }
+                >
+                  Reports
+                </NavLink>
+              )}
               <NavLink
                 to="/settings"
                 onClick={closeMobileMenu}
