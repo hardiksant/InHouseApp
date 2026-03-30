@@ -299,26 +299,32 @@ export function OrderDetailsModal({ order, onClose, onUpdate }: OrderDetailsModa
           <div className="bg-blue-50 p-4 rounded-xl">
             <h3 className="font-bold text-slate-800 mb-3">Payment Summary</h3>
             <div className="grid grid-cols-2 gap-4 text-sm">
-              <div className="flex justify-between">
-                <span className="text-slate-600">Product Amount:</span>
-                <span className="font-semibold">₹{order.product_amount.toFixed(2)}</span>
-              </div>
+              {(isAdmin || order.created_by === user?.id) && (
+                <>
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Product Amount:</span>
+                    <span className="font-semibold">₹{order.product_amount.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Advance Payment:</span>
+                    <span className="font-semibold">₹{order.advance_payment.toFixed(2)}</span>
+                  </div>
+                </>
+              )}
               <div className="flex justify-between">
                 <span className="text-slate-600">Courier Charge:</span>
                 <span className="font-semibold">₹{order.courier_charge.toFixed(2)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-600">Advance Payment:</span>
-                <span className="font-semibold">₹{order.advance_payment.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between">
                 <span className="text-slate-600">Order Type:</span>
                 <span className="font-semibold uppercase">{order.order_type}</span>
               </div>
-              <div className="flex justify-between col-span-2 border-t pt-2">
-                <span className="text-slate-800 font-bold">Final Due:</span>
-                <span className="font-bold text-blue-600">₹{order.final_due.toFixed(2)}</span>
-              </div>
+              {(isAdmin || order.created_by === user?.id) && (
+                <div className="flex justify-between col-span-2 border-t pt-2">
+                  <span className="text-slate-800 font-bold">Final Due:</span>
+                  <span className="font-bold text-blue-600">₹{order.final_due.toFixed(2)}</span>
+                </div>
+              )}
             </div>
 
             {order.payment_screenshot_url && (

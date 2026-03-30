@@ -36,7 +36,7 @@ interface CourierPartner {
 }
 
 export function ModeratorDispatchWorkflow() {
-  const { user, userProfile } = useAuth();
+  const { user, userProfile, isAdmin } = useAuth();
   const { showToast } = useToast();
   const [activeTab, setActiveTab] = useState<'new' | 'packing' | 'dispatched'>('new');
   const [newOrders, setNewOrders] = useState<Order[]>([]);
@@ -447,7 +447,9 @@ export function ModeratorDispatchWorkflow() {
                   </div>
                   <div className="text-right">
                     <p className="text-sm text-gray-600">Salesperson: {order.created_by_name}</p>
-                    <p className="text-sm font-semibold text-gray-900">₹{order.final_due.toFixed(2)}</p>
+                    {isAdmin && (
+                      <p className="text-sm font-semibold text-gray-900">₹{order.final_due.toFixed(2)}</p>
+                    )}
                     <p className="text-xs text-gray-500">{order.order_type.toUpperCase()}</p>
                   </div>
                 </div>
@@ -463,7 +465,7 @@ export function ModeratorDispatchWorkflow() {
                   </div>
                 </div>
 
-                {order.payment_screenshot_url && (
+                {isAdmin && order.payment_screenshot_url && (
                   <div className="mb-4">
                     <a
                       href={order.payment_screenshot_url}

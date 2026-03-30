@@ -3,6 +3,7 @@ import {
   Clock, Package, CheckCircle, Truck, Eye, AlertCircle
 } from 'lucide-react';
 import { OrderBook } from '../../../lib/supabase';
+import { useAuth } from '../../../contexts/AuthContext';
 
 interface ModeratorDashboardProps {
   orders: OrderBook[];
@@ -11,6 +12,7 @@ interface ModeratorDashboardProps {
 }
 
 export function ModeratorDashboard({ orders, onRefresh, onViewOrder }: ModeratorDashboardProps) {
+  const { isAdmin } = useAuth();
   const pendingApproval = orders.filter(o => o.status === 'pending_approval' || o.status === 'payment_received');
   const preparing = orders.filter(o => o.status === 'preparing_product');
   const readyForDispatch = orders.filter(o => o.status === 'ready_for_dispatch');
@@ -41,10 +43,12 @@ export function ModeratorDashboard({ orders, onRefresh, onViewOrder }: Moderator
           <span className="text-slate-600">Product:</span>
           <span className="font-medium text-slate-800">{order.product}</span>
         </div>
-        <div className="flex justify-between">
-          <span className="text-slate-600">Amount:</span>
-          <span className="font-medium text-slate-800">₹{order.product_amount.toFixed(2)}</span>
-        </div>
+        {isAdmin && (
+          <div className="flex justify-between">
+            <span className="text-slate-600">Amount:</span>
+            <span className="font-medium text-slate-800">₹{order.product_amount.toFixed(2)}</span>
+          </div>
+        )}
         <div className="flex justify-between">
           <span className="text-slate-600">Created by:</span>
           <span className="font-medium text-slate-800">{order.created_by_name}</span>
