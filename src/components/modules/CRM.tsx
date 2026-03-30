@@ -55,11 +55,12 @@ export function CRM() {
         .lt('follow_up_date', tomorrowStr)
         .eq('status', 'pending');
 
+      // FIX: correctly count all active hot leads excluding terminal statuses
       const { count: hotLeads } = await supabase
         .from('crm_leads')
         .select('*', { count: 'exact', head: true })
-        .in('status', ['interested', 'ready_to_buy'])
-        .neq('status', 'sold');
+        .eq('is_hot_lead', true)
+        .not('status', 'in', '("sold","not_interested")');
 
       const { count: convertedCustomers } = await supabase
         .from('crm_customers')
