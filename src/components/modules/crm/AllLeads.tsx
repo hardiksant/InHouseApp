@@ -5,9 +5,8 @@ import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '../../../contexts/ToastContext';
 
 export function AllLeads() {
-  const { user, userProfile } = useAuth();
+  const { user, userProfile, isAdmin, isModerator } = useAuth();
   const { showToast } = useToast();
-  const isAdmin = userProfile?.role === 'admin';
 
   const [leads, setLeads] = useState<CRMLead[]>([]);
   const [filteredLeads, setFilteredLeads] = useState<CRMLead[]>([]);
@@ -170,10 +169,13 @@ export function AllLeads() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="text-sm text-slate-900">{lead.product_interested}</div>
-                      {lead.budget && (
+                      {(isAdmin || lead.assigned_to === user?.id) && lead.budget && (
                         <div className="text-xs text-slate-600 flex items-center gap-1">
                           <DollarSign className="w-3 h-3" />₹{lead.budget.toLocaleString()}
                         </div>
+                      )}
+                      {isModerator && lead.assigned_to !== user?.id && (
+                        <div className="text-xs text-slate-400">—</div>
                       )}
                     </td>
                     <td className="px-6 py-4 text-sm text-slate-600">{lead.lead_source}</td>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Receipt, DollarSign, Calendar, User, Package, Search } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
+import { useAuth } from '../../../contexts/AuthContext';
 
 interface SalesBill {
   id: string;
@@ -15,6 +16,8 @@ interface SalesBill {
 }
 
 export function SalesHistory() {
+  const { user, isAdmin, isModerator } = useAuth();
+  const isSales = !isAdmin && !isModerator;
   const [bills, setBills] = useState<SalesBill[]>([]);
   const [filteredBills, setFilteredBills] = useState<SalesBill[]>([]);
   const [loading, setLoading] = useState(true);
@@ -32,10 +35,16 @@ export function SalesHistory() {
   const fetchSalesBills = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      let query = supabase
         .from('sales_bills')
         .select('*')
         .order('created_at', { ascending: false });
+
+      if (isSales && user) {
+        query = query.eq('created_by', user.id);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
       setBills(data || []);
@@ -82,39 +91,47 @@ export function SalesHistory() {
     <div className="space-y-6">
       <h2 className="text-2xl font-bold text-slate-900">Sales History</h2>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-2xl shadow-lg p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm opacity-90">Total Sales</p>
-              <p className="text-3xl font-bold mt-1">₹{getTotalSales().toLocaleString()}</p>
+      {!isModerator && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-2xl shadow-lg p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm opacity-90">Total Sales</p>
+                <p className="text-3xl font-bold mt-1">₹{getTotalSales().toLocaleString()}</p>
+              </div>
+              <DollarSign className="w-12 h-12 opacity-80" />
             </div>
-            <DollarSign className="w-12 h-12 opacity-80" />
           </div>
-        </div>
 
-        <div className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-2xl shadow-lg p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm opacity-90">Total Bills</p>
-              <p className="text-3xl font-bold mt-1">{filteredBills.length}</p>
+          <div className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-2xl shadow-lg p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm opacity-90">Total Bills</p>
+                <p className="text-3xl font-bold mt-1">{filteredBills.length}</p>
+              </div>
+              <Receipt className="w-12 h-12 opacity-80" />
             </div>
-            <Receipt className="w-12 h-12 opacity-80" />
           </div>
-        </div>
 
-        <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-2xl shadow-lg p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm opacity-90">Average Bill</p>
-              <p className="text-3xl font-bold mt-1">
-                ₹{filteredBills.length > 0 ? Math.round(getTotalSales() / filteredBills.length).toLocaleString() : 0}
-              </p>
+          <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-2xl shadow-lg p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm opacity-90">Average Bill</p>
+                <p className="text-3xl font-bold mt-1">
+                  ₹{filteredBills.length > 0 ? Math.round(getTotalSales() / filteredBills.length).toLocaleString() : 0}
+                </p>
+              </div>
+              <Package className="w-12 h-12 opacity-80" />
             </div>
-            <Package className="w-12 h-12 opacity-80" />
           </div>
         </div>
-      </div>
+      )}
+
+      {isModerator && (
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+          <p className="text-blue-800 text-sm">Showing {filteredBills.length} bills</p>
+        </div>
+      )}
 
       <div className="bg-white rounded-2xl shadow-lg border-2 border-slate-100 p-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -168,10 +185,11 @@ export function SalesHistory() {
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-slate-600 uppercase">Bill #</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-slate-600 uppercase">Customer</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-600 uppercase">Items</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-600 uppercase">Amount</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-600 uppercase">Payment</th>
+                  {!isModerator && <th className="px-6 py-3 text-left text-xs font-medium text-slate-600 uppercase">Items</th>}
+                  {!isModerator && <th className="px-6 py-3 text-left text-xs font-medium text-slate-600 uppercase">Amount</th>}
+                  {!isModerator && <th className="px-6 py-3 text-left text-xs font-medium text-slate-600 uppercase">Payment</th>}
                   <th className="px-6 py-3 text-left text-xs font-medium text-slate-600 uppercase">Date</th>
+                  {isModerator && <th className="px-6 py-3 text-left text-xs font-medium text-slate-600 uppercase">Status</th>}
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
@@ -184,18 +202,29 @@ export function SalesHistory() {
                       <div className="text-sm text-slate-900">{bill.customer_name}</div>
                       <div className="text-xs text-slate-600">{bill.customer_phone}</div>
                     </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm text-slate-600">
-                        {bill.items.length} item{bill.items.length !== 1 ? 's' : ''}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="font-medium text-green-600">₹{bill.total_amount.toLocaleString()}</div>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-slate-600">{bill.payment_method}</td>
+                    {!isModerator && (
+                      <td className="px-6 py-4">
+                        <div className="text-sm text-slate-600">
+                          {bill.items.length} item{bill.items.length !== 1 ? 's' : ''}
+                        </div>
+                      </td>
+                    )}
+                    {!isModerator && (
+                      <td className="px-6 py-4">
+                        <div className="font-medium text-green-600">₹{bill.total_amount.toLocaleString()}</div>
+                      </td>
+                    )}
+                    {!isModerator && (
+                      <td className="px-6 py-4 text-sm text-slate-600">{bill.payment_method}</td>
+                    )}
                     <td className="px-6 py-4 text-sm text-slate-600">
                       {new Date(bill.created_at).toLocaleDateString()}
                     </td>
+                    {isModerator && (
+                      <td className="px-6 py-4">
+                        <span className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded-full">Completed</span>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>

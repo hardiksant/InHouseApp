@@ -12,7 +12,7 @@ interface LeadDetailsProps {
 }
 
 export function LeadDetails({ leadId, onBack, onLeadUpdated }: LeadDetailsProps) {
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, isModerator } = useAuth();
   const { showToast } = useToast();
   const [lead, setLead] = useState<CRMLead | null>(null);
   const [timeline, setTimeline] = useState<CRMLeadTimeline[]>([]);
@@ -321,15 +321,17 @@ export function LeadDetails({ leadId, onBack, onLeadUpdated }: LeadDetailsProps)
                 </div>
               </div>
 
-              <div className="flex items-center gap-3">
-                <DollarSign className="w-5 h-5 text-slate-400" />
-                <div>
-                  <p className="text-sm text-slate-600">Budget</p>
-                  <p className="font-medium text-slate-800">
-                    {lead.budget ? `₹${lead.budget.toLocaleString()}` : 'N/A'}
-                  </p>
+              {(isAdmin || lead.assigned_to === user?.id) && (
+                <div className="flex items-center gap-3">
+                  <DollarSign className="w-5 h-5 text-slate-400" />
+                  <div>
+                    <p className="text-sm text-slate-600">Budget</p>
+                    <p className="font-medium text-slate-800">
+                      {lead.budget ? `₹${lead.budget.toLocaleString()}` : 'N/A'}
+                    </p>
+                  </div>
                 </div>
-              </div>
+              )}
 
               <div className="flex items-center gap-3">
                 <User className="w-5 h-5 text-slate-400" />
@@ -459,18 +461,20 @@ export function LeadDetails({ leadId, onBack, onLeadUpdated }: LeadDetailsProps)
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Purchase Value (₹) *
-                </label>
-                <input
-                  type="number"
-                  value={conversionData.purchase_value}
-                  onChange={(e) => setConversionData({ ...conversionData, purchase_value: Number(e.target.value) })}
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg"
-                  required
-                />
-              </div>
+              {(isAdmin || lead.assigned_to === user?.id) && (
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Purchase Value (₹) *
+                  </label>
+                  <input
+                    type="number"
+                    value={conversionData.purchase_value}
+                    onChange={(e) => setConversionData({ ...conversionData, purchase_value: Number(e.target.value) })}
+                    className="w-full px-4 py-2 border border-slate-300 rounded-lg"
+                    required
+                  />
+                </div>
+              )}
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
