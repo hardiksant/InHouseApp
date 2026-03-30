@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Receipt, FileText, Package, Palette, BarChart3, Settings, Sparkles, Users, ArrowRight, UserCog, CircleUser as UserCircle, AlertCircle, AlertTriangle } from 'lucide-react';
 import { PlatformHeader } from './PlatformHeader';
 import ReportIssueButton from './ReportIssueButton';
 import { DashboardAlerts } from './DashboardAlerts';
 import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../lib/supabase';
 
 interface ModuleCard {
   id: string;
@@ -16,9 +17,71 @@ interface ModuleCard {
   gradient: string;
 }
 
+interface Stats {
+  ordersToday: number;
+  pendingFollowUps: number;
+  activeHotLeads: number;
+  totalCustomers: number;
+}
+
 export function PlatformDashboard() {
   const navigate = useNavigate();
   const { isAdmin } = useAuth();
+  const [stats, setStats] = useState<Stats | null>(null);
+  const [loadingStats, setLoadingStats] = useState(true);
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
+  const fetchStats = async () => {
+    try {
+      setLoadingStats(true);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const todayISO = today.toISOString();
+
+      const [ordersRes, followUpsRes, hotLeadsRes, customersRes] = await Promise.all([
+        supabase
+          .from('order_book')
+          .select('id', { count: 'exact', head: true })
+          .gte('created_at', todayISO),
+
+        supabase
+          .from('crm_follow_ups')
+          .select('id', { count: 'exact', head: true })
+          .eq('status', 'pending')
+          .lte('follow_up_date', new Date().toISOString()),
+
+        supabase
+          .from('crm_leads')
+          .select('id', { count: 'exact', head: true })
+          .eq('is_hot_lead', true)
+          .not('status', 'in', '(sold,not_interested)'),
+
+        supabase
+          .from('crm_customers')
+          .select('id', { count: 'exact', head: true })
+      ]);
+
+      setStats({
+        ordersToday: ordersRes.count || 0,
+        pendingFollowUps: followUpsRes.count || 0,
+        activeHotLeads: hotLeadsRes.count || 0,
+        totalCustomers: customersRes.count || 0
+      });
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+      setStats({
+        ordersToday: 0,
+        pendingFollowUps: 0,
+        activeHotLeads: 0,
+        totalCustomers: 0
+      });
+    } finally {
+      setLoadingStats(false);
+    }
+  };
 
   const coreModules: ModuleCard[] = [
     {
@@ -194,20 +257,36 @@ export function PlatformDashboard() {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div className="text-center">
-              <div className="text-3xl font-bold text-blue-600 mb-1">{allModules.length}</div>
-              <div className="text-sm text-slate-600">Active Modules</div>
+              {loadingStats ? (
+                <div className="h-9 bg-slate-200 rounded animate-pulse mb-1 mx-auto w-16"></div>
+              ) : (
+                <div className="text-3xl font-bold text-blue-600 mb-1">{stats?.ordersToday || 0}</div>
+              )}
+              <div className="text-sm text-slate-600">Orders Today</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-green-600 mb-1">100%</div>
-              <div className="text-sm text-slate-600">System Status</div>
+              {loadingStats ? (
+                <div className="h-9 bg-slate-200 rounded animate-pulse mb-1 mx-auto w-16"></div>
+              ) : (
+                <div className="text-3xl font-bold text-green-600 mb-1">{stats?.pendingFollowUps || 0}</div>
+              )}
+              <div className="text-sm text-slate-600">Pending Follow-ups</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-orange-600 mb-1">Live</div>
-              <div className="text-sm text-slate-600">Platform Status</div>
+              {loadingStats ? (
+                <div className="h-9 bg-slate-200 rounded animate-pulse mb-1 mx-auto w-16"></div>
+              ) : (
+                <div className="text-3xl font-bold text-orange-600 mb-1">{stats?.activeHotLeads || 0}</div>
+              )}
+              <div className="text-sm text-slate-600">Active Hot Leads</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-purple-600 mb-1">Ready</div>
-              <div className="text-sm text-slate-600">All Systems</div>
+              {loadingStats ? (
+                <div className="h-9 bg-slate-200 rounded animate-pulse mb-1 mx-auto w-16"></div>
+              ) : (
+                <div className="text-3xl font-bold text-purple-600 mb-1">{stats?.totalCustomers || 0}</div>
+              )}
+              <div className="text-sm text-slate-600">Total Customers</div>
             </div>
           </div>
         </div>
