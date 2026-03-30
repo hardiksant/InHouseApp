@@ -159,7 +159,7 @@ export function PlatformHeader() {
             <InstallButton />
             <NotificationBell />
             <div className="hidden sm:block text-right">
-              <p className="text-sm font-medium text-white">{userProfile?.email}</p>
+              <p className="text-sm font-medium text-white">{userProfile?.full_name}</p>
               <p className="text-xs text-slate-300">
                 {userProfile?.role === 'admin' ? 'Administrator' : 'Employee'}
               </p>
