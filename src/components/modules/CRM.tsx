@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Users, UserPlus, Calendar, TrendingUp, Phone, Clock,
-  CheckCircle, AlertCircle, DollarSign, Filter, Search
+  CheckCircle, AlertCircle, DollarSign, Filter, Search, ChevronRight
 } from 'lucide-react';
 import { CRMHeader } from './CRMHeader';
 import { DailyHotLeads } from './crm/DailyHotLeads';
@@ -30,9 +30,29 @@ export function CRM() {
     convertedCustomers: 0,
     overdueFollowUps: 0
   });
+  const [showScrollIndicator, setShowScrollIndicator] = useState(true);
+  const tabContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchStats();
+  }, []);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (tabContainerRef.current) {
+        const { scrollLeft, scrollWidth, clientWidth } = tabContainerRef.current;
+        if (scrollLeft > 0 || scrollWidth <= clientWidth) {
+          setShowScrollIndicator(false);
+        }
+      }
+    };
+
+    const tabContainer = tabContainerRef.current;
+    if (tabContainer) {
+      tabContainer.addEventListener('scroll', handleScroll);
+      handleScroll();
+      return () => tabContainer.removeEventListener('scroll', handleScroll);
+    }
   }, []);
 
   const fetchStats = async () => {
@@ -246,8 +266,11 @@ export function CRM() {
           </p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-lg border-2 border-slate-100 p-2 mb-8">
-          <div className="flex gap-2 overflow-x-auto">
+        <div className="bg-white rounded-2xl shadow-lg border-2 border-slate-100 p-2 mb-8 relative">
+          <div
+            ref={tabContainerRef}
+            className="flex gap-2 overflow-x-auto scrollbar-hide"
+          >
             <button
               onClick={() => setCurrentView('dashboard')}
               className={`px-4 py-2 rounded-lg font-medium transition whitespace-nowrap ${
@@ -346,6 +369,17 @@ export function CRM() {
               Sales Analytics
             </button>
           </div>
+
+          {/* Right fade gradient overlay */}
+          <div className="md:hidden absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-white via-white/80 to-transparent pointer-events-none rounded-r-2xl" />
+
+          {/* Scroll indicator */}
+          {showScrollIndicator && (
+            <div className="md:hidden absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-600 rounded-full text-xs font-medium animate-pulse pointer-events-none">
+              <span>Scroll</span>
+              <ChevronRight className="w-3 h-3" />
+            </div>
+          )}
         </div>
 
         {renderView()}
