@@ -83,6 +83,30 @@ export function PlatformHeader() {
                 Creatives
               </NavLink>
               <NavLink
+                to="/crm"
+                className={({ isActive }) =>
+                  `px-4 py-2 rounded-lg font-medium transition ${
+                    isActive
+                      ? 'bg-blue-600 text-white'
+                      : 'text-slate-300 hover:bg-slate-700 hover:text-white'
+                  }`
+                }
+              >
+                CRM
+              </NavLink>
+              <NavLink
+                to="/astro-recommendation"
+                className={({ isActive }) =>
+                  `px-4 py-2 rounded-lg font-medium transition ${
+                    isActive
+                      ? 'bg-blue-600 text-white'
+                      : 'text-slate-300 hover:bg-slate-700 hover:text-white'
+                  }`
+                }
+              >
+                Astro
+              </NavLink>
+              <NavLink
                 to="/platform-reports"
                 className={({ isActive }) =>
                   `px-4 py-2 rounded-lg font-medium transition ${
