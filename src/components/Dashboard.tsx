@@ -8,7 +8,7 @@ import { DashboardBanner } from './DashboardBanner';
 import ReportIssueButton from './ReportIssueButton';
 
 export function Dashboard() {
-  const { user } = useAuth();
+  const { user, userProfile, isAdmin } = useAuth();
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -71,33 +71,37 @@ export function Dashboard() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg p-6 text-white transform hover:scale-105 transition-transform cursor-pointer">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-blue-100">Total Expenses</p>
-                <p className="text-4xl font-bold mt-2">
-                  {formatCurrency(totalExpenses)}
-                </p>
+          {isAdmin && (
+            <>
+              <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg p-6 text-white transform hover:scale-105 transition-transform cursor-pointer">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-blue-100">Total Expenses</p>
+                    <p className="text-4xl font-bold mt-2">
+                      {formatCurrency(totalExpenses)}
+                    </p>
+                  </div>
+                  <div className="bg-white/20 backdrop-blur-sm p-3 rounded-lg">
+                    <DollarSign className="w-10 h-10" />
+                  </div>
+                </div>
               </div>
-              <div className="bg-white/20 backdrop-blur-sm p-3 rounded-lg">
-                <DollarSign className="w-10 h-10" />
-              </div>
-            </div>
-          </div>
 
-          <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl shadow-lg p-6 text-white transform hover:scale-105 transition-transform cursor-pointer">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-green-100">This Month</p>
-                <p className="text-4xl font-bold mt-2">
-                  {formatCurrency(thisMonthExpenses)}
-                </p>
+              <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl shadow-lg p-6 text-white transform hover:scale-105 transition-transform cursor-pointer">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-green-100">This Month</p>
+                    <p className="text-4xl font-bold mt-2">
+                      {formatCurrency(thisMonthExpenses)}
+                    </p>
+                  </div>
+                  <div className="bg-white/20 backdrop-blur-sm p-3 rounded-lg">
+                    <Calendar className="w-10 h-10" />
+                  </div>
+                </div>
               </div>
-              <div className="bg-white/20 backdrop-blur-sm p-3 rounded-lg">
-                <Calendar className="w-10 h-10" />
-              </div>
-            </div>
-          </div>
+            </>
+          )}
 
           <div className="bg-gradient-to-br from-orange-500 to-amber-600 rounded-xl shadow-lg p-6 text-white transform hover:scale-105 transition-transform cursor-pointer">
             <div className="flex items-center justify-between">
@@ -125,10 +129,12 @@ export function Dashboard() {
                     <p className="text-sm text-gray-600">Subscriptions and periodic payments</p>
                   </div>
                 </div>
-                <div className="text-right bg-white rounded-lg p-4 shadow-sm">
-                  <p className="text-sm font-medium text-gray-600">Total Monthly</p>
-                  <p className="text-3xl font-bold text-blue-600">{formatCurrency(recurringTotal)}</p>
-                </div>
+                {isAdmin && (
+                  <div className="text-right bg-white rounded-lg p-4 shadow-sm">
+                    <p className="text-sm font-medium text-gray-600">Total Monthly</p>
+                    <p className="text-3xl font-bold text-blue-600">{formatCurrency(recurringTotal)}</p>
+                  </div>
+                )}
               </div>
             </div>
 

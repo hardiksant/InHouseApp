@@ -39,7 +39,7 @@ const MONTHS = [
 ];
 
 export function SalesBills() {
-  const { user, userProfile } = useAuth();
+  const { user, userProfile, isAdmin, isModerator } = useAuth();
   const { showToast } = useToast();
   const [showForm, setShowForm] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
@@ -77,7 +77,7 @@ export function SalesBills() {
       .select('*')
       .order('created_at', { ascending: false });
 
-    if (userProfile?.role !== 'admin') {
+    if (!isAdmin) {
       query = query.eq('created_by', user.id);
     }
 
