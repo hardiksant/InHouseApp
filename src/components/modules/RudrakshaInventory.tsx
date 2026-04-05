@@ -623,9 +623,9 @@ export function RudrakshaInventory({ onBack }: Props) {
                           <tr key={bead.id} className="hover:bg-orange-50 transition">
                             <td className="px-4 py-3">
                               <button
-                                onClick={() => handleUploadMedia(bead.id)}
+                                onClick={() => handleViewMedia(bead.id)}
                                 className="flex items-center justify-center w-14 h-14 rounded-lg overflow-hidden bg-slate-100 hover:ring-2 hover:ring-orange-400 transition"
-                                title="Upload Media"
+                                title="View Media"
                               >
                                 {bead.thumbnail_url ? (
                                   <img
@@ -661,9 +661,9 @@ export function RudrakshaInventory({ onBack }: Props) {
                             <td className="px-4 py-3">
                               <div className="flex gap-2">
                                 <button
-                                  onClick={() => handleViewMedia(bead.id)}
+                                  onClick={() => handleUploadMedia(bead.id)}
                                   className="p-1 text-blue-600 hover:bg-blue-50 rounded transition"
-                                  title="View Media"
+                                  title="Upload Media"
                                 >
                                   <ImageIcon className="w-4 h-4" />
                                 </button>
