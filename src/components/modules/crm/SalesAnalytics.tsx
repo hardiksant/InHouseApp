@@ -38,7 +38,7 @@ export function SalesAnalytics() {
 
       const { data: orders, error } = await supabase
         .from('order_book')
-        .select('created_by, created_by_name, final_due, status')
+        .select('created_by, created_by_name, product_amount, final_due, status')
         .gte('created_at', startOfMonth.toISOString())
         .in('status', ['payment_received', 'approved', 'preparing_product', 'ready_for_dispatch', 'dispatched', 'delivered']);
 
@@ -62,7 +62,7 @@ export function SalesAnalytics() {
 
         const stats = statsMap.get(userId)!;
         stats.total_orders += 1;
-        stats.total_sales += order.final_due || 0;
+        stats.total_sales += order.product_amount || 0;
       });
 
       statsMap.forEach((stats) => {

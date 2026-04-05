@@ -189,8 +189,18 @@ export function OrderDetailsModal({ order, onClose, onUpdate }: OrderDetailsModa
           .update({ status: 'dispatched', dispatch_date: trackingData.dispatch_date })
           .eq('id', order.id);
 
-        if (!statusError && order.created_by) {
-          await notifyOrderDispatched(order.id, order.order_number, trackingData.tracking_id, order.created_by);
+        if (!statusError) {
+          await supabase.from('order_status_history').insert({
+            order_id: order.id,
+            status: 'dispatched',
+            changed_by: user!.id,
+            changed_by_name: userProfile!.full_name,
+            notes: `Dispatched via ${trackingData.courier_partner}. Tracking ID: ${trackingData.tracking_id}`
+          });
+
+          if (order.created_by) {
+            await notifyOrderDispatched(order.id, order.order_number, trackingData.tracking_id, order.created_by);
+          }
         }
       }
 

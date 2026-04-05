@@ -31,10 +31,9 @@ export function OrderBook() {
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('order_book')
-        .select('*')
-        .order('created_at', { ascending: false });
+      let query = supabase.from('order_book').select('*').order('created_at', { ascending: false });
+      if (!isAdmin && !isModerator) { query = query.eq('created_by', user?.id); }
+      const { data, error } = await query;
 
       if (error) throw error;
       setOrders(data || []);
@@ -62,6 +61,8 @@ export function OrderBook() {
 
     setFilteredOrders(filtered);
   };
+
+  const displayOrders = filteredOrders;
 
   const getStatusBadge = (status: string) => {
     const statusConfig: Record<string, { color: string; icon: React.ReactNode; label: string }> = {
@@ -111,9 +112,6 @@ export function OrderBook() {
       </span>
     );
   };
-
-  const myOrders = filteredOrders.filter(order => order.created_by === user?.id);
-  const displayOrders = isAdmin || isModerator ? filteredOrders : myOrders;
 
   return (
     <div className="space-y-6">

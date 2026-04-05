@@ -87,6 +87,11 @@ export function LeadDetails({ leadId, onBack, onLeadUpdated }: LeadDetailsProps)
   const handleSave = async () => {
     if (!lead) return;
 
+    if (editedLead.status === 'sold' && lead.status !== 'sold') {
+      showToast('To mark a lead as sold, please use the "Convert to Customer" button instead.', 'error');
+      return;
+    }
+
     try {
       const updates: any = {
         ...editedLead,

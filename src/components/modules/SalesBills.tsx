@@ -48,6 +48,7 @@ export function SalesBills() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedMonth, setSelectedMonth] = useState('All Months');
   const [companySettings, setCompanySettings] = useState<CompanySettings | null>(null);
+  const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     customer_name: '',
     customer_phone: '',
@@ -92,8 +93,8 @@ export function SalesBills() {
     const date = new Date();
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
-    const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
-    return `INV-${year}${month}-${random}`;
+    const unique = Date.now().toString().slice(-6);
+    return `INV-${year}${month}-${unique}`;
   };
 
   const calculateAmounts = () => {
@@ -107,28 +108,31 @@ export function SalesBills() {
     e.preventDefault();
     if (!user) return;
 
-    const { gstAmount, total } = calculateAmounts();
-    const billNumber = generateBillNumber();
+    setSubmitting(true);
+    try {
+      const { gstAmount, total } = calculateAmounts();
+      const billNumber = generateBillNumber();
 
-    const { data, error } = await supabase
-      .from('sales_bills')
-      .insert({
-        bill_number: billNumber,
-        customer_name: formData.customer_name,
-        customer_phone: formData.customer_phone,
-        customer_address: formData.customer_address,
-        product_name: formData.product_name,
-        quantity: formData.quantity,
-        price: formData.price,
-        gst_percent: formData.gst_percent,
-        gst_amount: gstAmount,
-        total_amount: total,
-        created_by: user.id
-      })
-      .select()
-      .single();
+      const { data, error } = await supabase
+        .from('sales_bills')
+        .insert({
+          bill_number: billNumber,
+          customer_name: formData.customer_name,
+          customer_phone: formData.customer_phone,
+          customer_address: formData.customer_address,
+          product_name: formData.product_name,
+          quantity: formData.quantity,
+          price: formData.price,
+          gst_percent: formData.gst_percent,
+          gst_amount: gstAmount,
+          total_amount: total,
+          created_by: user.id
+        })
+        .select()
+        .single();
 
-    if (!error && data) {
+      if (error) throw error;
+
       setBills([data, ...bills]);
       setFormData({
         customer_name: '',
@@ -142,6 +146,10 @@ export function SalesBills() {
       setShowForm(false);
       setPreviewBill(data);
       setShowPreview(true);
+    } catch (error: any) {
+      showToast('Failed to create bill: ' + error.message, 'error');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -548,9 +556,10 @@ export function SalesBills() {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl font-medium hover:from-green-700 hover:to-emerald-700 transition shadow-lg"
+                  disabled={submitting}
+                  className="flex-1 px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl font-medium hover:from-green-700 hover:to-emerald-700 transition shadow-lg disabled:opacity-50"
                 >
-                  Generate Bill
+                  {submitting ? 'Generating...' : 'Generate Bill'}
                 </button>
               </div>
             </form>

@@ -119,21 +119,16 @@ export function CreateOrderForm({ onClose, onSuccess }: CreateOrderFormProps) {
   };
 
   const handleAddressChange = (value: string) => {
-    setFormData(prev => ({ ...prev, full_address: value }));
-
-    if (value.length > 20) {
-      const { mobile, pincode, cleanedAddress } = parseAddress(value);
-
-      if (mobile && !formData.mobile_number) {
-        setFormData(prev => ({ ...prev, mobile_number: mobile }));
+    setFormData(prev => {
+      const updated = { ...prev, full_address: value };
+      if (value.length > 20) {
+        const { mobile, pincode, cleanedAddress } = parseAddress(value);
+        if (mobile && !prev.mobile_number) updated.mobile_number = mobile;
+        if (pincode && !prev.pin_code) updated.pin_code = pincode;
+        if (cleanedAddress !== value) updated.full_address = cleanedAddress;
       }
-      if (pincode && !formData.pin_code) {
-        setFormData(prev => ({ ...prev, pin_code: pincode }));
-      }
-      if (cleanedAddress !== value) {
-        setFormData(prev => ({ ...prev, full_address: cleanedAddress }));
-      }
-    }
+      return updated;
+    });
   };
 
   const checkRepeatBuyer = async () => {
