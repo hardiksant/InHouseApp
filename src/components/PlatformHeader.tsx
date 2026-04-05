@@ -36,10 +36,10 @@ export function PlatformHeader() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-8">
             <div className="flex items-center gap-3">
-              <div className="bg-blue-600 p-2 rounded-lg">
+              <div className="bg-orange-600 p-2 rounded-lg">
                 <LayoutDashboard className="w-6 h-6 text-white" />
               </div>
-              <h1 className="text-2xl font-bold text-white">Business Platform</h1>
+              <h1 className="text-2xl font-bold text-white">RudrakshWala Office</h1>
             </div>
 
             <nav className="hidden md:flex items-center gap-1">

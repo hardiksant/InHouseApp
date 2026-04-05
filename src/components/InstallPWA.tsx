@@ -85,7 +85,7 @@ export function InstallPWA() {
             <Download className="w-6 h-6" />
           </div>
           <div className="flex-1">
-            <h3 className="text-lg font-bold mb-2">Install Expense Pilot</h3>
+            <h3 className="text-lg font-bold mb-2">Install RudrakshWala Office</h3>
             <p className="text-sm text-blue-100 mb-4">
               Install this app on your iPhone for a better experience and offline access.
             </p>
@@ -117,7 +117,7 @@ export function InstallPWA() {
           <Download className="w-6 h-6" />
         </div>
         <div className="flex-1">
-          <h3 className="text-lg font-bold mb-2">Install Expense Pilot</h3>
+          <h3 className="text-lg font-bold mb-2">Install RudrakshWala Office</h3>
           <p className="text-sm text-blue-100 mb-4">
             Install this app for a better experience, faster loading, and offline access.
           </p>

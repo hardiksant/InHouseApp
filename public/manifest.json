@@ -1,11 +1,11 @@
 {
-  "name": "Expense Pilot",
-  "short_name": "ExpensePilot",
-  "description": "Complete business management platform with expense tracking, CRM, inventory, and order management",
+  "name": "RudrakshWala Office",
+  "short_name": "RW Office",
+  "description": "Complete business management platform with expense tracking, CRM, inventory, sales, and order management for Rudraksha business",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#2563eb",
+  "theme_color": "#ea580c",
   "orientation": "portrait-primary",
   "icons": [
     {

@@ -209,10 +209,10 @@ export function PlatformDashboard() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="mb-12">
           <h1 className="text-4xl font-bold text-slate-900 mb-3">
-            Welcome to Your Business Platform
+            Welcome to RudrakshWala Office
           </h1>
           <p className="text-lg text-slate-600">
-            Select a module to get started with managing your business
+            Select a module to get started with managing your Rudraksha business
           </p>
         </div>
 
