@@ -188,6 +188,17 @@ export function RudrakshaInventory({ onBack }: Props) {
     }
   };
 
+  const handleViewMedia = async (beadId: string) => {
+    setSelectedBead(beads.find(b => b.id === beadId) || null);
+    const { data } = await supabase
+      .from('rudraksha_media')
+      .select('*')
+      .eq('bead_id', beadId);
+
+    setBeadMedia(data || []);
+    setShowMediaModal(true);
+  };
+
   const handleUploadMedia = async (beadId: string) => {
     setSelectedBead(beads.find(b => b.id === beadId) || null);
     const { data } = await supabase
@@ -575,7 +586,7 @@ export function RudrakshaInventory({ onBack }: Props) {
                           <tr key={bead.id} className="hover:bg-orange-50 transition">
                             <td className="px-4 py-3">
                               <button
-                                onClick={() => handleUploadMedia(bead.id)}
+                                onClick={() => handleViewMedia(bead.id)}
                                 className="flex items-center justify-center w-14 h-14 rounded-lg overflow-hidden bg-slate-100 hover:ring-2 hover:ring-orange-400 transition"
                               >
                                 {bead.thumbnail_url ? (
@@ -612,7 +623,7 @@ export function RudrakshaInventory({ onBack }: Props) {
                             <td className="px-4 py-3">
                               <div className="flex gap-2">
                                 <button
-                                  onClick={() => handleUploadMedia(bead.id)}
+                                  onClick={() => handleViewMedia(bead.id)}
                                   className="p-1 text-blue-600 hover:bg-blue-50 rounded transition"
                                   title="View Media"
                                 >
