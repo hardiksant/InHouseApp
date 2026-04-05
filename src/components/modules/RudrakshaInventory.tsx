@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Package, Plus, X, Download, Share2, Copy, Trash2, Image as ImageIcon, FileCheck, ArrowLeft } from 'lucide-react';
+import { Package, Plus, X, Download, Share2, Copy, Trash2, Image as ImageIcon, FileCheck, ArrowLeft, MessageCircle } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import { getCompanySettings } from '../../lib/companySettings';
 import { useToast } from '../../contexts/ToastContext';
+import { generateBeadDetailsMessage, shareOnWhatsApp } from '../../lib/whatsappShare';
+import { downloadFile, downloadMultipleFiles, getMediaFileName } from '../../lib/mediaDownload';
 
 interface RudrakshaCategory {
   id: string;
@@ -23,6 +25,7 @@ interface RudrakshaBead {
   price: number;
   status: 'Available' | 'Reserved' | 'Sold';
   created_at: string;
+  thumbnail_url?: string;
 }
 
 interface RudrakshaMedia {
@@ -45,8 +48,13 @@ export function RudrakshaInventory({ onBack }: Props) {
   const [showAddBeadModal, setShowAddBeadModal] = useState(false);
   const [showMediaModal, setShowMediaModal] = useState(false);
   const [showGroupPostModal, setShowGroupPostModal] = useState(false);
+  const [showWhatsAppModal, setShowWhatsAppModal] = useState(false);
   const [selectedBead, setSelectedBead] = useState<RudrakshaBead | null>(null);
   const [beadMedia, setBeadMedia] = useState<RudrakshaMedia[]>([]);
+  const [whatsAppOptions, setWhatsAppOptions] = useState({
+    sharePhotos: true,
+    shareVideos: false
+  });
   const [exportColumns, setExportColumns] = useState({
     code: true,
     size: true,
@@ -102,7 +110,24 @@ export function RudrakshaInventory({ onBack }: Props) {
       .order('created_at', { ascending: false });
 
     if (!error && data) {
-      setBeads(data);
+      const beadsWithThumbnails = await Promise.all(
+        data.map(async (bead) => {
+          const { data: mediaData } = await supabase
+            .from('rudraksha_media')
+            .select('file_url')
+            .eq('bead_id', bead.id)
+            .eq('media_type', 'photo')
+            .limit(1)
+            .single();
+
+          return {
+            ...bead,
+            thumbnail_url: mediaData?.file_url
+          };
+        })
+      );
+
+      setBeads(beadsWithThumbnails);
     }
   };
 
@@ -352,6 +377,93 @@ export function RudrakshaInventory({ onBack }: Props) {
     showToast('Text copied to clipboard!', 'success');
   };
 
+  const handleWhatsAppShare = async (bead: RudrakshaBead) => {
+    setSelectedBead(bead);
+    const { data } = await supabase
+      .from('rudraksha_media')
+      .select('*')
+      .eq('bead_id', bead.id);
+
+    setBeadMedia(data || []);
+    setShowWhatsAppModal(true);
+  };
+
+  const executeWhatsAppShare = async () => {
+    if (!selectedBead) return;
+
+    const message = generateBeadDetailsMessage({
+      mukhi: selectedBead.mukhi,
+      code: selectedBead.code,
+      size_mm: selectedBead.size_mm,
+      weight_g: selectedBead.weight_g,
+      lab: selectedBead.lab,
+      xray_report: selectedBead.xray_report,
+      price: selectedBead.price
+    });
+
+    const filesToDownload: { url: string; filename: string }[] = [];
+
+    if (whatsAppOptions.sharePhotos) {
+      const photos = beadMedia.filter(m => m.media_type === 'photo');
+      photos.forEach((photo, index) => {
+        filesToDownload.push({
+          url: photo.file_url,
+          filename: getMediaFileName(selectedBead.code, 'photo', index, photo.file_url)
+        });
+      });
+    }
+
+    if (whatsAppOptions.shareVideos) {
+      const videos = beadMedia.filter(m => m.media_type === 'video');
+      videos.forEach((video, index) => {
+        filesToDownload.push({
+          url: video.file_url,
+          filename: getMediaFileName(selectedBead.code, 'video', index, video.file_url)
+        });
+      });
+    }
+
+    if (filesToDownload.length > 0) {
+      showToast('Downloading media files...', 'info');
+      await downloadMultipleFiles(filesToDownload);
+    }
+
+    navigator.clipboard.writeText(message);
+    shareOnWhatsApp(message);
+
+    showToast('Message copied! Please attach the downloaded media in WhatsApp', 'success');
+    setShowWhatsAppModal(false);
+  };
+
+  const handleDownloadMedia = async (media: RudrakshaMedia) => {
+    const filename = getMediaFileName(
+      selectedBead?.code || 'bead',
+      media.media_type,
+      beadMedia.indexOf(media),
+      media.file_url
+    );
+
+    const success = await downloadFile(media.file_url, filename);
+    if (success) {
+      showToast('Download started!', 'success');
+    } else {
+      showToast('Download failed', 'error');
+    }
+  };
+
+  const handleDownloadAllMedia = async () => {
+    if (!selectedBead || beadMedia.length === 0) return;
+
+    const filesToDownload = beadMedia.map((media, index) => ({
+      url: media.file_url,
+      filename: getMediaFileName(selectedBead.code, media.media_type, index, media.file_url)
+    }));
+
+    showToast('Downloading all media...', 'info');
+    await downloadMultipleFiles(filesToDownload);
+    showToast('All downloads complete!', 'success');
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <button
@@ -447,6 +559,7 @@ export function RudrakshaInventory({ onBack }: Props) {
                     <table className="w-full">
                       <thead className="bg-orange-50">
                         <tr>
+                          <th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">Preview</th>
                           <th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">Code</th>
                           <th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">Lab</th>
                           <th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">Size (mm)</th>
@@ -460,6 +573,27 @@ export function RudrakshaInventory({ onBack }: Props) {
                       <tbody className="divide-y divide-slate-200">
                         {beads.map((bead) => (
                           <tr key={bead.id} className="hover:bg-orange-50 transition">
+                            <td className="px-4 py-3">
+                              <button
+                                onClick={() => handleUploadMedia(bead.id)}
+                                className="flex items-center justify-center w-14 h-14 rounded-lg overflow-hidden bg-slate-100 hover:ring-2 hover:ring-orange-400 transition"
+                              >
+                                {bead.thumbnail_url ? (
+                                  <img
+                                    src={bead.thumbnail_url}
+                                    alt={bead.code}
+                                    className="w-full h-full object-cover"
+                                    loading="lazy"
+                                    onError={(e) => {
+                                      e.currentTarget.style.display = 'none';
+                                      e.currentTarget.parentElement!.innerHTML = '<div class="w-full h-full flex items-center justify-center"><svg class="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg></div>';
+                                    }}
+                                  />
+                                ) : (
+                                  <Package className="w-6 h-6 text-slate-400" />
+                                )}
+                              </button>
+                            </td>
                             <td className="px-4 py-3 text-sm font-medium text-slate-900">{bead.code}</td>
                             <td className="px-4 py-3 text-sm text-slate-600">{bead.lab}</td>
                             <td className="px-4 py-3 text-sm text-slate-600">{bead.size_mm}</td>
@@ -480,9 +614,16 @@ export function RudrakshaInventory({ onBack }: Props) {
                                 <button
                                   onClick={() => handleUploadMedia(bead.id)}
                                   className="p-1 text-blue-600 hover:bg-blue-50 rounded transition"
-                                  title="Media"
+                                  title="View Media"
                                 >
                                   <ImageIcon className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => handleWhatsAppShare(bead)}
+                                  className="p-1 text-green-600 hover:bg-green-50 rounded transition"
+                                  title="Share on WhatsApp"
+                                >
+                                  <MessageCircle className="w-4 h-4" />
                                 </button>
                                 <button
                                   onClick={() => handleDeleteBead(bead.id)}
@@ -641,9 +782,21 @@ export function RudrakshaInventory({ onBack }: Props) {
           <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <div className="sticky top-0 bg-gradient-to-r from-orange-600 to-amber-600 text-white px-6 py-4 flex items-center justify-between rounded-t-2xl">
               <h2 className="text-2xl font-bold">Media for {selectedBead.code}</h2>
-              <button onClick={() => setShowMediaModal(false)} className="p-1 hover:bg-white/10 rounded-lg">
-                <X className="w-6 h-6" />
-              </button>
+              <div className="flex items-center gap-2">
+                {beadMedia.length > 0 && (
+                  <button
+                    onClick={handleDownloadAllMedia}
+                    className="flex items-center gap-2 bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition"
+                    title="Download All"
+                  >
+                    <Download className="w-4 h-4" />
+                    Download All
+                  </button>
+                )}
+                <button onClick={() => setShowMediaModal(false)} className="p-1 hover:bg-white/10 rounded-lg">
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
             </div>
 
             <div className="p-6">
@@ -654,7 +807,7 @@ export function RudrakshaInventory({ onBack }: Props) {
                 </div>
               ) : (
                 <div className="grid grid-cols-3 gap-4">
-                  {beadMedia.map((media) => (
+                  {beadMedia.map((media, index) => (
                     <div key={media.id} className="relative group">
                       {media.media_type === 'photo' ? (
                         <img src={media.file_url} alt="Bead" className="w-full h-48 object-cover rounded-lg" />
@@ -665,15 +818,115 @@ export function RudrakshaInventory({ onBack }: Props) {
                           <FileCheck className="w-12 h-12 text-slate-400" />
                         </div>
                       )}
-                      <div className="absolute top-2 right-2">
-                        <span className="px-2 py-1 bg-white text-xs font-medium rounded-full">
+                      <div className="absolute top-2 right-2 flex gap-2">
+                        <span className="px-2 py-1 bg-white text-xs font-medium rounded-full shadow">
                           {media.media_type}
+                        </span>
+                      </div>
+                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center gap-2">
+                        <button
+                          onClick={() => handleDownloadMedia(media)}
+                          className="bg-white text-slate-900 p-2 rounded-lg hover:bg-slate-100 transition"
+                          title="Download"
+                        >
+                          <Download className="w-5 h-5" />
+                        </button>
+                      </div>
+                      <div className="absolute bottom-2 left-2">
+                        <span className="px-2 py-1 bg-black/70 text-white text-xs font-medium rounded">
+                          {index + 1} of {beadMedia.length}
                         </span>
                       </div>
                     </div>
                   ))}
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showWhatsAppModal && selectedBead && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full">
+            <div className="sticky top-0 bg-gradient-to-r from-green-600 to-emerald-600 text-white px-6 py-4 flex items-center justify-between rounded-t-2xl">
+              <h2 className="text-2xl font-bold">Share on WhatsApp</h2>
+              <button onClick={() => setShowWhatsAppModal(false)} className="p-1 hover:bg-white/10 rounded-lg">
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-6">
+              <div>
+                <h3 className="font-bold text-lg mb-2 text-slate-900">Product Details</h3>
+                <div className="bg-slate-50 rounded-lg p-4 space-y-1 text-sm">
+                  <p><span className="font-semibold">Bead:</span> {selectedBead.mukhi} - {selectedBead.code}</p>
+                  <p><span className="font-semibold">Size:</span> {selectedBead.size_mm}mm</p>
+                  <p><span className="font-semibold">Weight:</span> {selectedBead.weight_g}g</p>
+                  {selectedBead.lab && <p><span className="font-semibold">Lab:</span> {selectedBead.lab}</p>}
+                  {selectedBead.xray_report && <p><span className="font-semibold">Certificate:</span> {selectedBead.xray_report}</p>}
+                  <p><span className="font-semibold">Price:</span> ₹{selectedBead.price}</p>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="font-bold text-lg mb-3 text-slate-900">Select Media to Share</h3>
+                <div className="space-y-3">
+                  <label className="flex items-center gap-3 p-3 border-2 border-slate-200 rounded-lg hover:bg-slate-50 cursor-pointer transition">
+                    <input
+                      type="checkbox"
+                      checked={whatsAppOptions.sharePhotos}
+                      onChange={(e) => setWhatsAppOptions({ ...whatsAppOptions, sharePhotos: e.target.checked })}
+                      className="w-5 h-5 text-green-600"
+                    />
+                    <div className="flex-1">
+                      <span className="font-medium text-slate-900">Share Photos</span>
+                      <p className="text-sm text-slate-600">
+                        {beadMedia.filter(m => m.media_type === 'photo').length} photo(s) available
+                      </p>
+                    </div>
+                  </label>
+
+                  <label className="flex items-center gap-3 p-3 border-2 border-slate-200 rounded-lg hover:bg-slate-50 cursor-pointer transition">
+                    <input
+                      type="checkbox"
+                      checked={whatsAppOptions.shareVideos}
+                      onChange={(e) => setWhatsAppOptions({ ...whatsAppOptions, shareVideos: e.target.checked })}
+                      className="w-5 h-5 text-green-600"
+                    />
+                    <div className="flex-1">
+                      <span className="font-medium text-slate-900">Share Videos</span>
+                      <p className="text-sm text-slate-600">
+                        {beadMedia.filter(m => m.media_type === 'video').length} video(s) available
+                      </p>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              {(whatsAppOptions.sharePhotos || whatsAppOptions.shareVideos) && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                  <p className="text-sm text-blue-800">
+                    Selected media will be downloaded automatically. Please attach them manually in WhatsApp after the message opens.
+                  </p>
+                </div>
+              )}
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowWhatsAppModal(false)}
+                  className="flex-1 px-6 py-3 border border-slate-300 text-slate-700 rounded-xl font-medium hover:bg-slate-50 transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={executeWhatsAppShare}
+                  className="flex-1 px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl font-medium hover:from-green-700 hover:to-emerald-700 transition shadow-lg flex items-center justify-center gap-2"
+                >
+                  <MessageCircle className="w-5 h-5" />
+                  Share
+                </button>
+              </div>
             </div>
           </div>
         </div>
