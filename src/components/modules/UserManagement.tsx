@@ -178,12 +178,17 @@ export function UserManagement() {
 
   const handleRoleChange = async (userId: string, newRole: string, fullName: string) => {
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('user_profiles')
         .update({ role: newRole })
-        .eq('id', userId);
+        .eq('id', userId)
+        .select();
 
       if (error) throw error;
+
+      if (!data || data.length === 0) {
+        throw new Error('No rows updated. You may not have permission to update user roles.');
+      }
 
       await supabase.rpc('log_activity', {
         p_user_id: user!.id,
@@ -196,9 +201,11 @@ export function UserManagement() {
 
       showToast(`Role updated to ${newRole} successfully!`, 'success');
       fetchUsers();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating role:', error);
-      showToast('Failed to update role', 'error');
+      showToast(error.message || 'Failed to update role', 'error');
+      // Refresh the list to revert the dropdown to the correct value
+      fetchUsers();
     }
   };
 
