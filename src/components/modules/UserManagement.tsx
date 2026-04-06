@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import {
   Users, UserPlus, X, Mail, Phone, Shield, Building, Trash2,
-  Check, AlertCircle, Eye, EyeOff, RefreshCw
+  Check, AlertCircle, Eye, EyeOff, RefreshCw, ArrowLeft
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { supabase, UserProfile, UserInvitation } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
 
 export function UserManagement() {
+  const navigate = useNavigate();
   const { user, userProfile } = useAuth();
   const { showToast } = useToast();
   const [users, setUsers] = useState<UserProfile[]>([]);
@@ -174,6 +176,32 @@ export function UserManagement() {
     }
   };
 
+  const handleRoleChange = async (userId: string, newRole: string, fullName: string) => {
+    try {
+      const { error } = await supabase
+        .from('user_profiles')
+        .update({ role: newRole })
+        .eq('id', userId);
+
+      if (error) throw error;
+
+      await supabase.rpc('log_activity', {
+        p_user_id: user!.id,
+        p_user_name: userProfile!.full_name,
+        p_action_type: 'user_role_changed',
+        p_action_description: `Changed ${fullName}'s role to ${newRole}`,
+        p_entity_type: 'user',
+        p_entity_id: userId
+      });
+
+      showToast(`Role updated to ${newRole} successfully!`, 'success');
+      fetchUsers();
+    } catch (error) {
+      console.error('Error updating role:', error);
+      showToast('Failed to update role', 'error');
+    }
+  };
+
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
       case 'admin': return 'bg-red-100 text-red-800';
@@ -185,6 +213,14 @@ export function UserManagement() {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
+      <button
+        onClick={() => navigate('/platform')}
+        className="flex items-center gap-2 text-slate-600 hover:text-slate-800 mb-4"
+      >
+        <ArrowLeft className="w-5 h-5" />
+        Back to Platform
+      </button>
+
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-slate-800">User Management</h1>
@@ -292,27 +328,38 @@ export function UserManagement() {
                       )}
                     </td>
                     <td className="py-4 px-4">
-                      {userItem.id !== user?.id && (
-                        <div className="flex gap-2">
-                          {userItem.is_active ? (
-                            <button
-                              onClick={() => handleDeactivateUser(userItem.id, userItem.full_name)}
-                              className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
-                              title="Deactivate User"
+                      <div className="flex gap-2 items-center">
+                        {userItem.id !== user?.id && (
+                          <>
+                            <select
+                              value={userItem.role}
+                              onChange={(e) => handleRoleChange(userItem.id, e.target.value, userItem.full_name)}
+                              className="px-3 py-1.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                             >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          ) : (
-                            <button
-                              onClick={() => handleActivateUser(userItem.id, userItem.full_name)}
-                              className="p-2 text-green-600 hover:bg-green-50 rounded-lg"
-                              title="Activate User"
-                            >
-                              <RefreshCw className="w-4 h-4" />
-                            </button>
-                          )}
-                        </div>
-                      )}
+                              <option value="sales">Sales</option>
+                              <option value="moderator">Moderator</option>
+                              <option value="admin">Admin</option>
+                            </select>
+                            {userItem.is_active ? (
+                              <button
+                                onClick={() => handleDeactivateUser(userItem.id, userItem.full_name)}
+                                className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
+                                title="Deactivate User"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => handleActivateUser(userItem.id, userItem.full_name)}
+                                className="p-2 text-green-600 hover:bg-green-50 rounded-lg"
+                                title="Activate User"
+                              >
+                                <RefreshCw className="w-4 h-4" />
+                              </button>
+                            )}
+                          </>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
