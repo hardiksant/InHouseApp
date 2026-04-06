@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import {
   Users, UserPlus, X, Mail, Phone, Shield, Building, Trash2,
-  Check, AlertCircle, Eye, EyeOff, RefreshCw, ArrowLeft
+  Check, AlertCircle, Eye, EyeOff, RefreshCw, ArrowLeft, Copy, CheckCircle
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase, UserProfile, UserInvitation } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
+
+const TEMPORARY_PASSWORD = 'Welcome@1234';
+const APP_URL = 'https://rudraoffice.netlify.app';
 
 export function UserManagement() {
   const navigate = useNavigate();
@@ -16,15 +19,15 @@ export function UserManagement() {
   const [invitations, setInvitations] = useState<UserInvitation[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [createdUserEmail, setCreatedUserEmail] = useState('');
   const [formData, setFormData] = useState({
     full_name: '',
     email: '',
     mobile_number: '',
     role: 'sales' as 'admin' | 'moderator' | 'sales',
-    department: '',
-    password: ''
+    department: ''
   });
-  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     fetchUsers();
@@ -67,18 +70,17 @@ export function UserManagement() {
     e.preventDefault();
 
     try {
-      const { data: authData, error: signUpError } = await supabase.auth.signUp({
+      const { data: authData, error: createError } = await supabase.auth.admin.createUser({
         email: formData.email,
-        password: formData.password,
-        options: {
-          data: {
-            full_name: formData.full_name,
-            role: formData.role
-          }
+        password: TEMPORARY_PASSWORD,
+        email_confirm: true,
+        user_metadata: {
+          full_name: formData.full_name,
+          role: formData.role
         }
       });
 
-      if (signUpError) throw signUpError;
+      if (createError) throw createError;
 
       if (authData.user) {
         const { error: profileError } = await supabase
@@ -95,24 +97,15 @@ export function UserManagement() {
 
         if (profileError) throw profileError;
 
-        await supabase.rpc('log_activity', {
-          p_user_id: user!.id,
-          p_user_name: userProfile!.full_name,
-          p_action_type: 'user_created',
-          p_action_description: `Created user account for ${formData.full_name}`,
-          p_entity_type: 'user',
-          p_entity_id: authData.user.id
-        });
-
-        showToast('User created successfully!', 'success');
+        setCreatedUserEmail(formData.email);
         setShowAddModal(false);
+        setShowSuccessModal(true);
         setFormData({
           full_name: '',
           email: '',
           mobile_number: '',
           role: 'sales',
-          department: '',
-          password: ''
+          department: ''
         });
         fetchUsers();
       }
@@ -120,6 +113,12 @@ export function UserManagement() {
       console.error('Error creating user:', error);
       showToast(`Failed to create user: ${error.message}`, 'error');
     }
+  };
+
+  const copyLoginDetails = () => {
+    const details = `App URL: ${APP_URL}\nEmail: ${createdUserEmail}\nTemporary Password: ${TEMPORARY_PASSWORD}`;
+    navigator.clipboard.writeText(details);
+    showToast('Login details copied to clipboard!', 'success');
   };
 
   const handleDeactivateUser = async (userId: string, fullName: string) => {
@@ -376,6 +375,64 @@ export function UserManagement() {
         )}
       </div>
 
+      {showSuccessModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full">
+            <div className="bg-green-600 text-white px-6 py-4 flex items-center justify-between rounded-t-2xl">
+              <div className="flex items-center gap-3">
+                <CheckCircle className="w-8 h-8" />
+                <h2 className="text-2xl font-bold">User Created Successfully!</h2>
+              </div>
+              <button onClick={() => setShowSuccessModal(false)} className="p-1 hover:bg-white/10 rounded-lg">
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <p className="text-slate-700 font-medium">
+                Share these login details with the new user:
+              </p>
+
+              <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 space-y-3">
+                <div>
+                  <label className="text-xs font-semibold text-slate-600 uppercase">App URL</label>
+                  <p className="text-slate-900 font-mono text-sm mt-1">{APP_URL}</p>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-slate-600 uppercase">Email</label>
+                  <p className="text-slate-900 font-mono text-sm mt-1">{createdUserEmail}</p>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-slate-600 uppercase">Temporary Password</label>
+                  <p className="text-slate-900 font-mono text-sm mt-1">{TEMPORARY_PASSWORD}</p>
+                </div>
+              </div>
+
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                <p className="text-xs text-amber-800">
+                  <strong>Important:</strong> Ask the user to change their password after first login for security.
+                </p>
+              </div>
+
+              <button
+                onClick={copyLoginDetails}
+                className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-xl font-medium hover:bg-blue-700 shadow-lg"
+              >
+                <Copy className="w-5 h-5" />
+                Copy Login Details
+              </button>
+
+              <button
+                onClick={() => setShowSuccessModal(false)}
+                className="w-full px-6 py-3 border border-slate-300 text-slate-700 rounded-xl font-medium hover:bg-slate-50"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showAddModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full">
@@ -462,33 +519,12 @@ export function UserManagement() {
                 </p>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Password *
-                </label>
-                <div className="relative">
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    value={formData.password}
-                    onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required
-                    minLength={6}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                  >
-                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                  </button>
-                </div>
-                <p className="text-xs text-slate-600 mt-1">Minimum 6 characters</p>
-              </div>
-
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <p className="text-sm text-blue-800">
-                  <strong>Note:</strong> The user will be created with the provided credentials and can log in immediately.
+                  <strong>Note:</strong> User will be created with temporary password: <code className="bg-blue-100 px-2 py-0.5 rounded font-mono">{TEMPORARY_PASSWORD}</code>
+                </p>
+                <p className="text-xs text-blue-700 mt-1">
+                  After creating the user, you'll receive login details to share with them.
                 </p>
               </div>
 
