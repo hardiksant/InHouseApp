@@ -70,45 +70,46 @@ export function UserManagement() {
     e.preventDefault();
 
     try {
-      const { data: authData, error: createError } = await supabase.auth.admin.createUser({
-        email: formData.email,
-        password: TEMPORARY_PASSWORD,
-        email_confirm: true,
-        user_metadata: {
-          full_name: formData.full_name,
-          role: formData.role
-        }
-      });
-
-      if (createError) throw createError;
-
-      if (authData.user) {
-        const { error: profileError } = await supabase
-          .from('user_profiles')
-          .insert({
-            id: authData.user.id,
-            full_name: formData.full_name,
-            email: formData.email,
-            mobile_number: formData.mobile_number || null,
-            role: formData.role,
-            department: formData.department || null,
-            is_active: true
-          });
-
-        if (profileError) throw profileError;
-
-        setCreatedUserEmail(formData.email);
-        setShowAddModal(false);
-        setShowSuccessModal(true);
-        setFormData({
-          full_name: '',
-          email: '',
-          mobile_number: '',
-          role: 'sales',
-          department: ''
-        });
-        fetchUsers();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error('No active session');
       }
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-user`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: formData.email,
+            full_name: formData.full_name,
+            role: formData.role,
+            mobile_number: formData.mobile_number || undefined,
+            department: formData.department || undefined,
+          }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to create user');
+      }
+
+      setCreatedUserEmail(formData.email);
+      setShowAddModal(false);
+      setShowSuccessModal(true);
+      setFormData({
+        full_name: '',
+        email: '',
+        mobile_number: '',
+        role: 'sales',
+        department: ''
+      });
+      fetchUsers();
     } catch (error: any) {
       console.error('Error creating user:', error);
       showToast(`Failed to create user: ${error.message}`, 'error');
