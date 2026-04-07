@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Building2, Save, Upload, Image as ImageIcon, MessageSquareWarning } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Building2, Save, Upload, Image as ImageIcon, MessageSquareWarning, ArrowLeft } from 'lucide-react';
 import { SettingsHeader } from './SettingsHeader';
 import UserReportedIssues from './UserReportedIssues';
 import ReportIssueButton from '../ReportIssueButton';
@@ -20,6 +21,7 @@ interface CompanySettings {
 }
 
 export function Settings() {
+  const navigate = useNavigate();
   const { user, isAdmin } = useAuth();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -158,6 +160,14 @@ export function Settings() {
       <SettingsHeader />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <button
+          onClick={() => navigate('/dashboard')}
+          className="flex items-center gap-2 text-slate-600 hover:text-slate-900 mb-6 transition"
+        >
+          <ArrowLeft className="w-5 h-5" />
+          Back to Dashboard
+        </button>
+
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-slate-900 mb-3">Settings</h1>
           <p className="text-lg text-slate-600">

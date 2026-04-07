@@ -10,7 +10,8 @@ import {
   User,
   FileText,
   TrendingUp,
-  X
+  X,
+  ArrowLeft
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
@@ -167,6 +168,14 @@ export function SystemReports() {
     <div className="min-h-screen bg-gray-50">
       <div className="bg-gradient-to-r from-orange-600 to-red-600 text-white py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
+          <button
+            onClick={() => navigate('/dashboard')}
+            className="flex items-center gap-2 text-white hover:text-orange-100 mb-6 transition"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            Back to Dashboard
+          </button>
+
           <div className="flex items-center gap-4 mb-6">
             <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
               <AlertCircle className="w-8 h-8 text-white" />

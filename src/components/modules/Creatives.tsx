@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Folder, Upload, Download, Copy, X, FileImage, Search,
   Tag, Video, FileText, Image as ImageIcon, Play, Trash2,
-  ChevronRight, ChevronDown
+  ChevronRight, ChevronDown, ArrowLeft
 } from 'lucide-react';
 import { CreativesHeader } from './CreativesHeader';
 import { supabase, Creative } from '../../lib/supabase';
@@ -33,6 +34,7 @@ const ALLOWED_FILE_TYPES = {
 };
 
 export function Creatives() {
+  const navigate = useNavigate();
   const { user, userProfile } = useAuth();
   const { showToast } = useToast();
   const isAdminOrModerator = userProfile?.role === 'admin' || userProfile?.role === 'moderator';
@@ -242,6 +244,14 @@ export function Creatives() {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="mb-8">
+          <button
+            onClick={() => navigate('/dashboard')}
+            className="flex items-center gap-2 text-slate-600 hover:text-slate-900 mb-6 transition"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            Back to Dashboard
+          </button>
+
           <div className="flex items-center justify-between mb-4">
             <div>
               <h1 className="text-4xl font-bold text-slate-900 mb-2">Marketing Asset Library</h1>

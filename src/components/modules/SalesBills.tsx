@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { FileText, Plus, Download, Eye, Search, X, Filter } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { FileText, Plus, Download, Eye, Search, X, Filter, ArrowLeft } from 'lucide-react';
 import { SalesBillsHeader } from './SalesBillsHeader';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
@@ -39,6 +40,7 @@ const MONTHS = [
 ];
 
 export function SalesBills() {
+  const navigate = useNavigate();
   const { user, userProfile, isAdmin, isModerator } = useAuth();
   const { showToast } = useToast();
   const [showForm, setShowForm] = useState(false);
@@ -295,6 +297,14 @@ export function SalesBills() {
       <SalesBillsHeader />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <button
+          onClick={() => navigate('/dashboard')}
+          className="flex items-center gap-2 text-slate-600 hover:text-slate-900 mb-6 transition"
+        >
+          <ArrowLeft className="w-5 h-5" />
+          Back to Dashboard
+        </button>
+
         <div className="mb-8 flex items-center justify-between">
           <div>
             <h1 className="text-4xl font-bold text-slate-900 mb-3">Sales Bills</h1>

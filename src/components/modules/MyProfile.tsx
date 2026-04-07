@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   User, Mail, Phone, Shield, Building, Camera, Save, X,
-  Lock, Eye, EyeOff
+  Lock, Eye, EyeOff, ArrowLeft
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { useToast } from '../../contexts/ToastContext';
 
 export function MyProfile() {
+  const navigate = useNavigate();
   const { user, userProfile, updateProfile } = useAuth();
   const { showToast } = useToast();
   const [editing, setEditing] = useState(false);
@@ -126,6 +128,14 @@ export function MyProfile() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
+      <button
+        onClick={() => navigate('/dashboard')}
+        className="flex items-center gap-2 text-slate-600 hover:text-slate-900 transition"
+      >
+        <ArrowLeft className="w-5 h-5" />
+        Back to Dashboard
+      </button>
+
       <div>
         <h1 className="text-3xl font-bold text-slate-800">My Profile</h1>
         <p className="text-slate-600 mt-1">Manage your personal information and settings</p>
