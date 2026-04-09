@@ -1,18 +1,28 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
-import { LogOut, Home } from 'lucide-react';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { LogOut, Home, ArrowLeft, LayoutDashboard, Receipt, ScanLine, BarChart3 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { NotificationBell } from './NotificationBell';
 import logo from '../assets/expensepilot-logo.png';
 
 export function DashboardHeader() {
   const { signOut, userProfile } = useAuth();
+  const navigate = useNavigate();
 
   return (
     <header className="bg-white border-b border-gray-200 sticky top-0 z-40">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-8">
+            {/* Back button on mobile */}
+            <button
+              onClick={() => navigate('/platform')}
+              className="md:hidden flex items-center gap-1 text-gray-500 hover:text-gray-800 transition mr-1"
+              aria-label="Back to platform"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+
             <img src={logo} alt="ExpensePilot" className="h-10" />
 
             <nav className="hidden md:flex items-center gap-1">
@@ -63,7 +73,7 @@ export function DashboardHeader() {
                   }`
                 }
               >
-                Expense Viewer
+                Scanner
               </NavLink>
               <NavLink
                 to="/expensepilot/reports"
@@ -100,70 +110,61 @@ export function DashboardHeader() {
       </div>
 
       {/* Mobile tab navigation */}
-      <div className="md:hidden border-t border-gray-100 overflow-x-auto scrollbar-hide">
-        <div className="flex whitespace-nowrap px-2 py-1">
-          <NavLink
-            to="/platform"
-            className={({ isActive }) =>
-              `inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition mr-1 ${
-                isActive
-                  ? 'bg-blue-50 text-blue-700'
-                  : 'text-gray-600 hover:bg-gray-50'
-              }`
-            }
-          >
-            <Home className="w-3.5 h-3.5" />
-            Home
-          </NavLink>
+      <div className="md:hidden border-t border-gray-200 bg-white">
+        <nav className="flex">
           <NavLink
             to="/expensepilot/dashboard"
             className={({ isActive }) =>
-              `inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium transition mr-1 ${
+              `flex-1 flex flex-col items-center gap-1 py-2.5 text-xs font-medium transition-colors ${
                 isActive
-                  ? 'bg-blue-50 text-blue-700'
-                  : 'text-gray-600 hover:bg-gray-50'
+                  ? 'text-blue-600 border-b-2 border-blue-600'
+                  : 'text-gray-500 hover:text-gray-700'
               }`
             }
           >
+            <LayoutDashboard className="w-5 h-5" />
             Dashboard
           </NavLink>
           <NavLink
             to="/expensepilot/expenses"
             className={({ isActive }) =>
-              `inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium transition mr-1 ${
+              `flex-1 flex flex-col items-center gap-1 py-2.5 text-xs font-medium transition-colors ${
                 isActive
-                  ? 'bg-blue-50 text-blue-700'
-                  : 'text-gray-600 hover:bg-gray-50'
+                  ? 'text-blue-600 border-b-2 border-blue-600'
+                  : 'text-gray-500 hover:text-gray-700'
               }`
             }
           >
+            <Receipt className="w-5 h-5" />
             Expenses
           </NavLink>
           <NavLink
             to="/expensepilot/viewer"
             className={({ isActive }) =>
-              `inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium transition mr-1 ${
+              `flex-1 flex flex-col items-center gap-1 py-2.5 text-xs font-medium transition-colors ${
                 isActive
-                  ? 'bg-blue-50 text-blue-700'
-                  : 'text-gray-600 hover:bg-gray-50'
+                  ? 'text-blue-600 border-b-2 border-blue-600'
+                  : 'text-gray-500 hover:text-gray-700'
               }`
             }
           >
-            Viewer
+            <ScanLine className="w-5 h-5" />
+            Scanner
           </NavLink>
           <NavLink
             to="/expensepilot/reports"
             className={({ isActive }) =>
-              `inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium transition ${
+              `flex-1 flex flex-col items-center gap-1 py-2.5 text-xs font-medium transition-colors ${
                 isActive
-                  ? 'bg-blue-50 text-blue-700'
-                  : 'text-gray-600 hover:bg-gray-50'
+                  ? 'text-blue-600 border-b-2 border-blue-600'
+                  : 'text-gray-500 hover:text-gray-700'
               }`
             }
           >
+            <BarChart3 className="w-5 h-5" />
             Reports
           </NavLink>
-        </div>
+        </nav>
       </div>
     </header>
   );
