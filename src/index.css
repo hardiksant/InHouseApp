@@ -50,4 +50,17 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
+
+  /* Fix modal scroll on mobile: prevent background page from scrolling when a modal overlay is open */
+  body:has(.fixed.z-50) {
+    overflow: hidden;
+    touch-action: none;
+  }
+
+  /* Allow modal inner content to scroll vertically, contained within the modal */
+  .fixed.z-50 > * {
+    touch-action: pan-y;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
 }

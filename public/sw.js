@@ -1,4 +1,4 @@
-const CACHE_NAME = 'expense-pilot-v1';
+const CACHE_NAME = 'rudrakshwala-office-v2';
 const urlsToCache = [
   '/',
   '/index.html',

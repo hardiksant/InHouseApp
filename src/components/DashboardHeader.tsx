@@ -98,6 +98,73 @@ export function DashboardHeader() {
           </div>
         </div>
       </div>
+
+      {/* Mobile tab navigation */}
+      <div className="md:hidden border-t border-gray-100 overflow-x-auto scrollbar-hide">
+        <div className="flex whitespace-nowrap px-2 py-1">
+          <NavLink
+            to="/platform"
+            className={({ isActive }) =>
+              `inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition mr-1 ${
+                isActive
+                  ? 'bg-blue-50 text-blue-700'
+                  : 'text-gray-600 hover:bg-gray-50'
+              }`
+            }
+          >
+            <Home className="w-3.5 h-3.5" />
+            Home
+          </NavLink>
+          <NavLink
+            to="/expensepilot/dashboard"
+            className={({ isActive }) =>
+              `inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium transition mr-1 ${
+                isActive
+                  ? 'bg-blue-50 text-blue-700'
+                  : 'text-gray-600 hover:bg-gray-50'
+              }`
+            }
+          >
+            Dashboard
+          </NavLink>
+          <NavLink
+            to="/expensepilot/expenses"
+            className={({ isActive }) =>
+              `inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium transition mr-1 ${
+                isActive
+                  ? 'bg-blue-50 text-blue-700'
+                  : 'text-gray-600 hover:bg-gray-50'
+              }`
+            }
+          >
+            Expenses
+          </NavLink>
+          <NavLink
+            to="/expensepilot/viewer"
+            className={({ isActive }) =>
+              `inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium transition mr-1 ${
+                isActive
+                  ? 'bg-blue-50 text-blue-700'
+                  : 'text-gray-600 hover:bg-gray-50'
+              }`
+            }
+          >
+            Viewer
+          </NavLink>
+          <NavLink
+            to="/expensepilot/reports"
+            className={({ isActive }) =>
+              `inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium transition ${
+                isActive
+                  ? 'bg-blue-50 text-blue-700'
+                  : 'text-gray-600 hover:bg-gray-50'
+              }`
+            }
+          >
+            Reports
+          </NavLink>
+        </div>
+      </div>
     </header>
   );
 }

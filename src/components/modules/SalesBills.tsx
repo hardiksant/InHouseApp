@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FileText, Plus, Download, Eye, Search, X, Filter, ArrowLeft } from 'lucide-react';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import { SalesBillsHeader } from './SalesBillsHeader';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
@@ -155,123 +157,158 @@ export function SalesBills() {
     }
   };
 
-  const handleDownloadPDF = (bill: SalesBill) => {
+  const handleDownloadPDF = async (bill: SalesBill) => {
     if (!companySettings) return;
 
+    const currencySymbol = companySettings.currency_symbol || '₹';
     const subtotal = bill.quantity * bill.price;
-    const currencySymbol = companySettings.currency_symbol;
 
-    const htmlContent = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="UTF-8">
-        <title>Invoice - ${bill.bill_number}</title>
-        <style>
-          * { margin: 0; padding: 0; box-sizing: border-box; }
-          body { font-family: Arial, sans-serif; padding: 40px; line-height: 1.6; }
-          .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #10b981; padding-bottom: 20px; }
-          .logo { max-width: 150px; max-height: 100px; margin: 0 auto 15px; }
-          .company-name { font-size: 24px; font-weight: bold; color: #059669; margin: 10px 0; }
-          .company-details { color: #666; font-size: 13px; margin: 5px 0; }
-          .gstin { color: #666; font-size: 14px; font-weight: bold; }
-          .invoice-details { margin: 30px 0; display: flex; justify-content: space-between; }
-          .section-title { font-weight: bold; color: #059669; margin-bottom: 10px; font-size: 16px; }
-          .customer-info { margin: 20px 0; padding: 15px; background: #f0fdf4; border-radius: 8px; }
-          .customer-info div { margin: 5px 0; }
-          table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-          th, td { padding: 12px; text-align: left; border-bottom: 1px solid #d1d5db; }
-          th { background: #10b981; color: white; }
-          .totals { margin-top: 30px; }
-          .total-row { display: flex; justify-content: flex-end; padding: 8px 0; }
-          .total-label { width: 200px; font-weight: bold; text-align: right; padding-right: 20px; }
-          .total-value { width: 150px; text-align: right; }
-          .grand-total { font-size: 18px; color: #059669; border-top: 2px solid #10b981; padding-top: 10px; margin-top: 10px; }
-          .footer { margin-top: 50px; text-align: center; color: #666; font-size: 12px; }
-          @media print {
-            body { padding: 20px; }
-          }
-        </style>
-      </head>
-      <body>
-        <div class="header">
-          ${companySettings.company_logo ? `<img src="${companySettings.company_logo}" alt="Company Logo" class="logo" />` : ''}
-          <div class="company-name">${companySettings.company_name}</div>
-          ${companySettings.company_address ? `<div class="company-details">${companySettings.company_address}</div>` : ''}
-          ${companySettings.company_phone ? `<div class="company-details">Phone: ${companySettings.company_phone}</div>` : ''}
-          ${companySettings.company_email ? `<div class="company-details">Email: ${companySettings.company_email}</div>` : ''}
-          <div class="gstin">GSTIN: ${companySettings.company_gstin}</div>
-        </div>
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 15;
+    let yPos = 15;
 
-        <div class="invoice-details">
-          <div><strong>Invoice Number:</strong> ${bill.bill_number}</div>
-          <div><strong>Date:</strong> ${new Date(bill.created_at).toLocaleDateString()}</div>
-        </div>
-
-        <div class="customer-info">
-          <div class="section-title">Customer Details</div>
-          <div><strong>Name:</strong> ${bill.customer_name}</div>
-          <div><strong>Phone:</strong> ${bill.customer_phone}</div>
-          <div><strong>Address:</strong> ${bill.customer_address}</div>
-        </div>
-
-        <table>
-          <thead>
-            <tr>
-              <th>Product Name</th>
-              <th>Quantity</th>
-              <th>Price</th>
-              <th>Amount</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>${bill.product_name}</td>
-              <td>${bill.quantity}</td>
-              <td>${currencySymbol}${bill.price.toFixed(2)}</td>
-              <td>${currencySymbol}${subtotal.toFixed(2)}</td>
-            </tr>
-          </tbody>
-        </table>
-
-        <div class="totals">
-          <div class="total-row">
-            <div class="total-label">Subtotal:</div>
-            <div class="total-value">${currencySymbol}${subtotal.toFixed(2)}</div>
-          </div>
-          <div class="total-row">
-            <div class="total-label">GST (${bill.gst_percent}%):</div>
-            <div class="total-value">${currencySymbol}${bill.gst_amount.toFixed(2)}</div>
-          </div>
-          <div class="total-row grand-total">
-            <div class="total-label">Total Amount:</div>
-            <div class="total-value">${currencySymbol}${bill.total_amount.toFixed(2)}</div>
-          </div>
-        </div>
-
-        <div class="footer">
-          <p>Thank you for your business!</p>
-          <p>${companySettings.company_name}</p>
-        </div>
-
-        <script>
-          window.onload = function() {
-            window.print();
-          };
-        </script>
-      </body>
-      </html>
-    `;
-
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) {
-      showToast('Please allow popups to download the invoice', 'warning');
-      return;
+    // Company logo
+    if (companySettings.company_logo) {
+      try {
+        const res = await fetch(companySettings.company_logo);
+        const blob = await res.blob();
+        const dataUrl = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+        const logoWidth = 35;
+        const logoHeight = 18;
+        doc.addImage(dataUrl, 'PNG', (pageWidth - logoWidth) / 2, yPos, logoWidth, logoHeight);
+        yPos += 22;
+      } catch {
+        // Skip logo if it can't be loaded
+      }
     }
 
-    printWindow.document.open();
-    printWindow.document.write(htmlContent);
-    printWindow.document.close();
+    // Company name
+    doc.setFontSize(18);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(5, 150, 105);
+    doc.text(companySettings.company_name, pageWidth / 2, yPos, { align: 'center' });
+    yPos += 6;
+
+    // Company details
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(80, 80, 80);
+    if (companySettings.company_address) {
+      doc.text(companySettings.company_address, pageWidth / 2, yPos, { align: 'center' });
+      yPos += 4;
+    }
+    if (companySettings.company_phone) {
+      doc.text(`Phone: ${companySettings.company_phone}`, pageWidth / 2, yPos, { align: 'center' });
+      yPos += 4;
+    }
+    if (companySettings.company_email) {
+      doc.text(`Email: ${companySettings.company_email}`, pageWidth / 2, yPos, { align: 'center' });
+      yPos += 4;
+    }
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(50, 50, 50);
+    doc.text(`GSTIN: ${companySettings.company_gstin}`, pageWidth / 2, yPos, { align: 'center' });
+    yPos += 6;
+
+    // Divider
+    doc.setDrawColor(16, 185, 129);
+    doc.setLineWidth(0.8);
+    doc.line(margin, yPos, pageWidth - margin, yPos);
+    yPos += 7;
+
+    // Invoice number and date
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0, 0, 0);
+    doc.text(`Invoice: ${bill.bill_number}`, margin, yPos);
+    doc.text(`Date: ${new Date(bill.created_at).toLocaleDateString()}`, pageWidth - margin, yPos, { align: 'right' });
+    yPos += 10;
+
+    // Customer details box
+    doc.setFillColor(240, 253, 244);
+    doc.setDrawColor(167, 243, 208);
+    doc.setLineWidth(0.3);
+    doc.rect(margin, yPos, pageWidth - 2 * margin, 30, 'FD');
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(5, 150, 105);
+    doc.text('Customer Details', margin + 3, yPos + 6);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(9);
+    doc.text(`Name: ${bill.customer_name}`, margin + 3, yPos + 13);
+    doc.text(`Phone: ${bill.customer_phone}`, margin + 3, yPos + 19);
+    const addressLines = doc.splitTextToSize(`Address: ${bill.customer_address}`, pageWidth - 2 * margin - 6);
+    doc.text(addressLines[0], margin + 3, yPos + 25);
+    yPos += 36;
+
+    // Product table
+    autoTable(doc, {
+      startY: yPos,
+      head: [['Product Name', 'Qty', 'Unit Price', 'Amount']],
+      body: [[
+        bill.product_name,
+        bill.quantity.toString(),
+        `${currencySymbol}${bill.price.toFixed(2)}`,
+        `${currencySymbol}${subtotal.toFixed(2)}`
+      ]],
+      theme: 'grid',
+      headStyles: { fillColor: [16, 185, 129], textColor: 255, fontSize: 10, fontStyle: 'bold' },
+      bodyStyles: { fontSize: 9 },
+      columnStyles: {
+        0: { cellWidth: 'auto' },
+        1: { cellWidth: 20, halign: 'center' },
+        2: { cellWidth: 35, halign: 'right' },
+        3: { cellWidth: 35, halign: 'right', fontStyle: 'bold' }
+      },
+      margin: { left: margin, right: margin }
+    });
+
+    yPos = (doc as any).lastAutoTable.finalY + 8;
+
+    // Totals section
+    const rightEdge = pageWidth - margin;
+    const labelX = rightEdge - 70;
+
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(80, 80, 80);
+    doc.text('Subtotal:', labelX, yPos);
+    doc.text(`${currencySymbol}${subtotal.toFixed(2)}`, rightEdge, yPos, { align: 'right' });
+    yPos += 5;
+
+    doc.text(`GST (${bill.gst_percent}%):`, labelX, yPos);
+    doc.text(`${currencySymbol}${bill.gst_amount.toFixed(2)}`, rightEdge, yPos, { align: 'right' });
+    yPos += 5;
+
+    doc.setDrawColor(16, 185, 129);
+    doc.setLineWidth(0.3);
+    doc.line(labelX, yPos, rightEdge, yPos);
+    yPos += 5;
+
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(5, 150, 105);
+    doc.setFontSize(11);
+    doc.text('Total Amount:', labelX, yPos);
+    doc.text(`${currencySymbol}${bill.total_amount.toFixed(2)}`, rightEdge, yPos, { align: 'right' });
+    yPos += 15;
+
+    // Footer
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'italic');
+    doc.setTextColor(120, 120, 120);
+    doc.text('Thank you for your business!', pageWidth / 2, yPos, { align: 'center' });
+    yPos += 5;
+    doc.setFont('helvetica', 'normal');
+    doc.text(companySettings.company_name, pageWidth / 2, yPos, { align: 'center' });
+
+    doc.save(`Invoice-${bill.bill_number}.pdf`);
   };
 
   const filteredBills = bills.filter(bill => {
@@ -298,7 +335,7 @@ export function SalesBills() {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <button
-          onClick={() => navigate('/dashboard')}
+          onClick={() => navigate('/platform')}
           className="flex items-center gap-2 text-slate-600 hover:text-slate-900 mb-6 transition"
         >
           <ArrowLeft className="w-5 h-5" />

@@ -1,14 +1,12 @@
 import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import logo from '../assets/expensepilot-logo.png';
-import { useNavigate } from 'react-router-dom';
 
 export function ResetPassword() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,7 +31,8 @@ export function ResetPassword() {
 
       if (error) throw error;
 
-      navigate('/?password-reset=success');
+      await supabase.auth.signOut();
+      window.location.replace('/login?password-reset=success');
     } catch (err: any) {
       setError(err.message || 'Failed to reset password');
     } finally {
