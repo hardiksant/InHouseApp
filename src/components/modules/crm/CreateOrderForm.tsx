@@ -276,8 +276,9 @@ export function CreateOrderForm({ onClose, onSuccess }: CreateOrderFormProps) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl my-8">
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 overflow-y-auto">
+      <div className="flex min-h-full items-start sm:items-center justify-center p-4">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl my-4">
         <div className="flex items-center justify-between p-6 border-b">
           <h2 className="text-2xl font-bold text-gray-900">Create New Order</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
@@ -562,6 +563,7 @@ export function CreateOrderForm({ onClose, onSuccess }: CreateOrderFormProps) {
             </button>
           </div>
         </form>
+      </div>
       </div>
     </div>
   );

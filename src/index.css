@@ -57,8 +57,9 @@
     touch-action: none;
   }
 
-  /* Allow modal inner content to scroll vertically, contained within the modal */
-  .fixed.z-50 > * {
+  /* Allow the modal overlay and all its descendants to scroll vertically */
+  .fixed.z-50,
+  .fixed.z-50 * {
     touch-action: pan-y;
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;

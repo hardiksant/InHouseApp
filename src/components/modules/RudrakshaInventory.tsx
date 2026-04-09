@@ -897,7 +897,7 @@ export function RudrakshaInventory({ onBack }: Props) {
 
       {showUploadMediaModal && selectedBead && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
             <div className="bg-gradient-to-r from-orange-600 to-amber-600 text-white px-6 py-4 flex items-center justify-between rounded-t-2xl">
               <h2 className="text-2xl font-bold">Upload Media for {selectedBead.code}</h2>
               <button onClick={() => setShowUploadMediaModal(false)} className="p-1 hover:bg-white/10 rounded-lg">
@@ -961,7 +961,7 @@ export function RudrakshaInventory({ onBack }: Props) {
 
       {showWhatsAppModal && selectedBead && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
             <div className="sticky top-0 bg-gradient-to-r from-green-600 to-emerald-600 text-white px-6 py-4 flex items-center justify-between rounded-t-2xl">
               <h2 className="text-2xl font-bold">Share on WhatsApp</h2>
               <button onClick={() => setShowWhatsAppModal(false)} className="p-1 hover:bg-white/10 rounded-lg">

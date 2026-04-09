@@ -141,7 +141,7 @@ export function Login() {
 
       {showForgotPassword && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto p-8">
             <h2 className="text-2xl font-bold text-slate-800 mb-2">Reset Password</h2>
             <p className="text-slate-600 mb-6">
               Enter your email address and we'll send you a link to reset your password.

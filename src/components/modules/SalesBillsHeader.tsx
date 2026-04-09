@@ -1,10 +1,11 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
-import { LogOut, Home, FileText } from 'lucide-react';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { LogOut, Home, FileText, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 
 export function SalesBillsHeader() {
   const { signOut, userProfile } = useAuth();
+  const navigate = useNavigate();
 
   return (
     <header className="bg-gradient-to-r from-green-600 to-emerald-600 border-b border-green-700 sticky top-0 z-40 shadow-lg">
@@ -12,6 +13,13 @@ export function SalesBillsHeader() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-8">
             <div className="flex items-center gap-3">
+              <button
+                onClick={() => navigate('/platform')}
+                className="md:hidden flex items-center gap-1 text-green-100 hover:text-white transition"
+                aria-label="Back to platform"
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </button>
               <div className="bg-white/10 p-2 rounded-lg">
                 <FileText className="w-6 h-6 text-white" />
               </div>

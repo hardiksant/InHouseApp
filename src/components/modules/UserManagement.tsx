@@ -436,7 +436,7 @@ export function UserManagement() {
 
       {showAddModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="bg-blue-600 text-white px-6 py-4 flex items-center justify-between rounded-t-2xl">
               <h2 className="text-2xl font-bold">Add New User</h2>
               <button onClick={() => setShowAddModal(false)} className="p-1 hover:bg-white/10 rounded-lg">

@@ -297,7 +297,7 @@ export function ExpenseForm({ onClose, onSuccess, editExpense }: ExpenseFormProp
   if (entryMode === 'select') {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
           <div className="border-b border-gray-200 px-6 py-4 flex items-center justify-between">
             <h2 className="text-2xl font-bold text-gray-900">Add Expense</h2>
             <button
